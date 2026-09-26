@@ -53,6 +53,7 @@
             <li><span class="how-icon">⏰</span><span><b>Submit before 11:59 PM.</b>The earlier you submit, the better the grade. Watch out for chaos!</span></li>
           </ol>
           <p class="how-tip">Talk to each other. A lot.</p>
+          <button class="btn secondary wide" type="button" data-help>📖 Full instructions</button>
         </div>
 
         <footer class="home-foot">No login · No install · 1–8 players<br>Best with friends in the same room or on a call. Bots fill empty seats.</footer>
@@ -62,9 +63,12 @@
     <!-- ============================================================ LOBBY -->
     <section id="screen-lobby" class="screen" aria-label="Lobby">
       <div class="topbar">
-        <button class="icon-btn" id="lobby-leave" type="button" aria-label="Leave room">⟵</button>
+        <button class="icon-btn text-btn" id="lobby-leave" type="button" aria-label="Leave room">🚪 Leave</button>
         <span class="topbar-title">Study room</span>
-        <button class="icon-btn" id="lobby-sound" type="button" aria-label="Sound">🔊</button>
+        <div class="topbar-right">
+          <button class="icon-btn" type="button" data-help aria-label="How to play">❓</button>
+          <button class="icon-btn" id="lobby-sound" type="button" aria-label="Sound">🔊</button>
+        </div>
       </div>
       <div class="lobby-wrap">
         <div class="code-block">
@@ -100,6 +104,11 @@
               <button class="btn ghost" id="remove-bot" type="button">Remove a bot</button>
             </div>
           </div>
+          <div class="setting">
+            <span class="setting-label">Bot difficulty</span>
+            <div class="segmented" id="bot-seg" role="group" aria-label="Bot difficulty"></div>
+            <div class="setting-blurb" id="bot-blurb"></div>
+          </div>
           <div class="solo-tip" id="solo-tip" hidden>🎒 Playing alone? Quick play adds 3 bots who take the other jobs. Or open this page in a second tab to see the real-time sync.</div>
           <div class="start-row">
             <button class="btn secondary" id="quick-btn" type="button" hidden>⚡ Quick play with 3 bots</button>
@@ -110,6 +119,7 @@
         <div class="card wait-panel" id="wait-panel" hidden>
           <span class="big-emoji">⏳</span>
           <span id="wait-text">Waiting for the host to start</span><span class="dots"></span>
+          <span class="wait-settings" id="wait-settings"></span>
         </div>
 
         <div class="card prefs">
@@ -121,17 +131,7 @@
           </div>
         </div>
 
-        <details class="card how-mini">
-          <summary>How to play</summary>
-          <ol>
-            <li>Everyone gets a job: 🔎 Research, ✍️ Write, 🎨 Design or ✅ Edit.</li>
-            <li>Folders land on your desk. If the next step is your job, tap it and solve a 3-second task.</li>
-            <li>If not, pass it to whoever has that job. Say it out loud!</li>
-            <li>When every step is done, submit it. Earlier = better grade.</li>
-            <li>Chaos happens: Wi-Fi drops, deadlines move, roles swap. Adapt.</li>
-            <li>At 11:59 PM you get a report card with a group GPA and awards.</li>
-          </ol>
-        </details>
+        <button class="btn secondary wide" type="button" data-help>📖 How to play</button>
       </div>
     </section>
 
@@ -142,6 +142,7 @@
         <div class="night-bar" aria-hidden="true"><div class="night-fill" id="night-fill"></div><span class="moon" id="moon">🌙</span></div>
         <div class="gpa" aria-label="Group GPA"><span class="gpa-label">GPA</span><span class="gpa-value" id="gpa-value">–</span></div>
         <button class="icon-btn" id="game-sound" type="button" aria-label="Sound">🔊</button>
+        <button class="icon-btn" id="game-leave" type="button" aria-label="Leave the game" title="Leave the game">🚪</button>
       </header>
       <div class="team" id="team" aria-label="Your team"></div>
       <div class="job" id="job"></div>
@@ -177,6 +178,114 @@
     </div>
   </div>
   <div id="chat" class="overlay" hidden></div>
+  <div id="help" class="overlay" hidden>
+    <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="help-head">
+        <h2 id="help-title">📖 How to play</h2>
+        <button class="sheet-close help-close" type="button" aria-label="Close instructions">✕</button>
+      </div>
+      <p class="help-live" id="help-live" hidden>⏰ The clock keeps running while this is open!</p>
+      <div class="help-tabs" role="tablist" aria-label="Instructions">
+        <button class="help-tab" role="tab" type="button" id="tab-basics" data-tab="basics" aria-controls="panel-basics">🎯 Basics</button>
+        <button class="help-tab" role="tab" type="button" id="tab-jobs" data-tab="jobs" aria-controls="panel-jobs">🧑‍💻 Jobs</button>
+        <button class="help-tab" role="tab" type="button" id="tab-chaos" data-tab="chaos" aria-controls="panel-chaos">🌪️ Chaos</button>
+        <button class="help-tab" role="tab" type="button" id="tab-grades" data-tab="grades" aria-controls="panel-grades">🎓 Grades</button>
+      </div>
+
+      <section class="help-panel" id="panel-basics" data-panel="basics" role="tabpanel" aria-labelledby="tab-basics">
+        <p class="help-lead">It's 8:00 PM and your group project is due at <b>11:59</b>. Finish as many assignments as you can before midnight.</p>
+        <ol class="help-steps">
+          <li><span class="hs-icon">🎲</span><span><b>Get your job.</b> Everyone gets one: <span class="job-chip st-research">🔎 Research</span> <span class="job-chip st-write">✍️ Write</span> <span class="job-chip st-design">🎨 Design</span> <span class="job-chip st-edit">✅ Edit</span>. With fewer than 4 players, some people get two.</span></li>
+          <li><span class="hs-icon">📂</span><span><b>Folders land on your desk.</b> Each one shows the steps it needs, in order, and a countdown timer.</span></li>
+          <li><span class="hs-icon">👆</span><span><b>Your step? Do it.</b> Tap the colored button and solve a quick task. It takes about 3 seconds.</span></li>
+          <li><span class="hs-icon">📨</span><span><b>Not your step? Pass it.</b> Tap the name of a teammate who has that job. The folder flies to their phone.</span></li>
+          <li><span class="hs-icon">⬆️</span><span><b>All steps done? Submit it!</b> The sooner you submit, the better the grade.</span></li>
+          <li><span class="hs-icon">🗣️</span><span><b>Talk!</b> Say what you're sending and what you need. Teams that talk win.</span></li>
+        </ol>
+        <div class="help-tips">
+          <b>Tips</b>
+          <span>🤖 Playing alone? Tap <b>Quick play</b> and bots take the other jobs.</span>
+          <span>🔴 A red, shaking folder has 5 seconds left. Hurry!</span>
+          <span>📋 Tap <b>Everyone's assignments</b> to see where every folder is.</span>
+        </div>
+      </section>
+
+      <section class="help-panel" id="panel-jobs" data-panel="jobs" role="tabpanel" aria-labelledby="tab-jobs" hidden>
+        <div class="help-job st-research">
+          <h3>🔎 Research</h3>
+          <p>Tap the <b>2 sources you can actually trust</b>.</p>
+          <p class="good-bad"><span class="gb good">✓ Journals, textbooks, government data, expert interviews</span><span class="gb bad">✗ Anonymous blogs, viral videos, memes, ads, clickbait</span></p>
+        </div>
+        <div class="help-job st-write">
+          <h3>✍️ Write</h3>
+          <p>Tap the sentences <b>in the order they belong</b>. Ask yourself what has to happen first, next and last.</p>
+        </div>
+        <div class="help-job st-design">
+          <h3>🎨 Design</h3>
+          <p>Pick <b>the right chart</b> for what the slide needs to show:</p>
+          <ul class="chart-guide">
+            <li><b>Line chart</b> change over time</li>
+            <li><b>Bar chart</b> comparing amounts</li>
+            <li><b>Pie chart</b> parts of a whole</li>
+            <li><b>Map</b> where things are</li>
+            <li><b>Timeline</b> events in order</li>
+            <li><b>Flowchart</b> steps of a process</li>
+            <li><b>Scatter plot</b> how two things relate</li>
+            <li><b>Venn diagram</b> what overlaps</li>
+          </ul>
+        </div>
+        <div class="help-job st-edit">
+          <h3>✅ Edit</h3>
+          <p>Tap <b>the misspelled word</b>. For example, <s>definately</s> should be <b>definitely</b>.</p>
+        </div>
+        <p class="help-note">A wrong tap costs you a second and shows a tip, so you learn as you go.</p>
+      </section>
+
+      <section class="help-panel" id="panel-chaos" data-panel="chaos" role="tabpanel" aria-labelledby="tab-chaos" hidden>
+        <p class="help-lead">Every so often, something goes wrong. Just like a real group project.</p>
+        <ul class="chaos-list">
+          <li><span class="cl-icon ev-wifi">📶</span><span><b>Wi-Fi is down</b> One player's screen fills with static for 7 seconds. Everyone else has to cover.</span></li>
+          <li><span class="cl-icon ev-groupchat">💬</span><span><b>Group chat exploded</b> Tap away 3 notifications before you can work again.</span></li>
+          <li><span class="cl-icon ev-swap">🔀</span><span><b>Roles swapped</b> Everyone gets a new job. Say yours out loud!</span></li>
+          <li><span class="cl-icon ev-deadline">📣</span><span><b>Deadline moved up</b> Every folder loses 10 seconds.</span></li>
+          <li><span class="cl-icon ev-extension">🙏</span><span><b>Extension granted</b> Every folder gains 12 seconds.</span></li>
+          <li><span class="cl-icon ev-printer">🖨️</span><span><b>Printer jam</b> Nobody can submit for 6 seconds.</span></li>
+          <li><span class="cl-icon ev-final">⏰</span><span><b>Last 30 seconds</b> The room turns red. Submit everything you can!</span></li>
+        </ul>
+      </section>
+
+      <section class="help-panel" id="panel-grades" data-panel="grades" role="tabpanel" aria-labelledby="tab-grades" hidden>
+        <p class="help-lead">Each folder is graded by how much of its time was left when you submitted it.</p>
+        <ul class="grade-guide">
+          <li><span class="grade-pill g-A">A</span> Half the time or more left</li>
+          <li><span class="grade-pill g-B">B</span> More than a quarter left</li>
+          <li><span class="grade-pill g-C">C</span> Some time left</li>
+          <li><span class="grade-pill g-D">D</span> Just seconds to spare</li>
+          <li><span class="grade-pill g-F">F</span> Late: the timer ran out</li>
+        </ul>
+        <p>Your <b>group GPA</b> is the average of all grades (A = 4.0 down to F = 0). At 11:59 PM you get a report card with your GPA, a transcript and an award for every player.</p>
+        <h3 class="help-sub">Difficulty</h3>
+        <ul class="diff-guide">
+          <li><b>Freshman</b> Chill. Perfect for your first game.</li>
+          <li><b>Sophomore</b> The normal amount of chaos.</li>
+          <li><b>Junior</b> Tighter deadlines, and work lands on the wrong desk.</li>
+          <li><b>Senior</b> Finals week. Good luck.</li>
+        </ul>
+        <h3 class="help-sub">Bot difficulty</h3>
+        <ul class="diff-guide">
+          <li><b>😇 Easy</b> Bots are fast, helpful teammates.</li>
+          <li><b>🙂 Medium</b> Bots work at a normal pace.</li>
+          <li><b>😴 Hard</b> Bots are slow slackers who sometimes send folders to the wrong person. Carry the group!</li>
+        </ul>
+        <h3 class="help-sub">Buttons</h3>
+        <ul class="diff-guide">
+          <li><b>🔊</b> Sound on or off</li>
+          <li><b>🚪</b> Leave the game</li>
+          <li><b>❓</b> Open these instructions</li>
+        </ul>
+      </section>
+    </div>
+  </div>
   <div id="jobcard" class="overlay" hidden></div>
   <div id="modal" class="overlay" hidden></div>
   <div id="toasts" class="toasts" aria-live="polite"></div>

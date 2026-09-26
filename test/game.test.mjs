@@ -194,6 +194,33 @@ test('host controls are host-only and lobby-only', () => {
   assert.equal(dup2.name, 'Host 2');
 });
 
+test('bot difficulty changes how fast the bots work', () => {
+  const avgTaskMs = {};
+  for (const botLevel of ['easy', 'medium', 'hard']) {
+    let ms = 0;
+    let tasks = 0;
+    for (let i = 0; i < 3; i++) {
+      const clock = makeClock();
+      const game = new Game('BOTS', clock.now);
+      const host = game.join({ name: 'Host' }).player;
+      game.handle(host.id, { t: 'settings', botLevel, length: 120 });
+      game.handle(host.id, { t: 'settings', botLevel: 'impossible' }); // ignored
+      assert.equal(game.settings.botLevel, botLevel);
+      for (let b = 0; b < 3; b++) game.addBot();
+      game.handle(host.id, { t: 'start' });
+      runRound(game, clock, [host.id]);
+      assert.equal(game.results.botLevel, botLevel);
+      assert.equal(game.results.bots, 3);
+      for (const p of game.players.values()) {
+        if (p.isBot) { ms += p.stats.taskMs; tasks += p.stats.tasks; }
+      }
+    }
+    assert.ok(tasks > 0, `${botLevel} bots did some work`);
+    avgTaskMs[botLevel] = Math.round(ms / tasks);
+  }
+  assert.ok(avgTaskMs.easy < avgTaskMs.medium && avgTaskMs.medium < avgTaskMs.hard, `average bot task time: ${JSON.stringify(avgTaskMs)}`);
+});
+
 test('rooms cap at 8 players and bots make room for humans in the lobby', () => {
   const clock = makeClock();
   const game = new Game('FULL', clock.now);

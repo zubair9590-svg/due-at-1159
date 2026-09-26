@@ -2,13 +2,13 @@
 // prints the average GPA per difficulty. Run: node test/balance.mjs
 import { Game, DESK_LIMIT } from '../src/game.js';
 
-function simulate({ difficulty, humans, bots, length = 180, skill = 1 }) {
+function simulate({ difficulty, humans, bots, length = 180, skill = 1, botLevel = 'medium' }) {
   const clock = { t: 1_000_000 };
   const game = new Game('SIMU', () => clock.t);
   const ids = [];
   for (let i = 0; i < humans; i++) ids.push(game.join({ name: `H${i}` }).player.id);
   for (let i = 0; i < bots; i++) game.addBot();
-  game.handle(ids[0], { t: 'settings', difficulty, length });
+  game.handle(ids[0], { t: 'settings', difficulty, length, botLevel });
   game.handle(ids[0], { t: 'start' });
   // Each human is busy until busyUntil; a task takes 2.5-5s, a pass ~1.2s, a submit ~0.8s.
   const busy = Object.fromEntries(ids.map((id) => [id, 0]));
@@ -59,6 +59,13 @@ function runTimers(clock) {
 }
 
 const RUNS = 12;
+
+console.log('\nsolo + 3 bots at Sophomore, by bot difficulty');
+for (const botLevel of ['easy', 'medium', 'hard']) {
+  let gpa = 0;
+  for (let i = 0; i < RUNS; i++) { timers.length = 0; gpa += simulate({ difficulty: 'sophomore', humans: 1, bots: 3, botLevel }).gpa; }
+  console.log(`  ${botLevel.padEnd(7)} GPA ${(gpa / RUNS).toFixed(2)}`);
+}
 for (const [label, humans, bots] of [['solo', 1, 0], ['solo+3 bots', 1, 3], ['4 humans', 4, 0], ['6 humans', 6, 0]]) {
   const row = [];
   for (const difficulty of ['freshman', 'sophomore', 'junior', 'senior']) {

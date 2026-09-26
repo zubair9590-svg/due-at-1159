@@ -24,6 +24,11 @@ const DIFFS = [
   { id: 'senior', label: 'Senior', blurb: 'Finals week. Good luck.' },
 ];
 const LENGTHS = [{ id: 120, label: '2 min' }, { id: 180, label: '3 min' }, { id: 270, label: '4½ min' }];
+const BOT_LEVELS = [
+  { id: 'easy', label: '😇 Easy', name: 'Easy', blurb: 'Bots are fast, helpful teammates.' },
+  { id: 'medium', label: '🙂 Medium', name: 'Medium', blurb: 'Bots work at a normal pace.' },
+  { id: 'hard', label: '😴 Hard', name: 'Hard', blurb: 'Bots are slow slackers who sometimes send folders to the wrong person. Carry the group!' },
+];
 const EVENTS = {
   wifi: { emoji: '📶', title: 'Wi-Fi is down!', text: (fx, you) => (fx.targetId === you ? 'Your Wi-Fi dropped! Hang tight…' : `${fx.targetName}'s Wi-Fi dropped. Cover for them!`) },
   deadline: { emoji: '📣', title: 'Deadline moved up!', text: () => 'The professor wants everything 10 seconds sooner.' },
@@ -161,6 +166,15 @@ function gpaColor(gpa) {
   if (gpa >= 0.5) return 'var(--gD)';
   return 'var(--gF)';
 }
+function settingsSummary(settings, bots) {
+  const diff = DIFFS.find((d) => d.id === settings.difficulty);
+  const len = LENGTHS.find((l) => l.id === settings.length);
+  const bl = BOT_LEVELS.find((b) => b.id === (settings.botLevel || 'medium'));
+  const parts = [diff && diff.label, len && len.label];
+  if (bots && bl) parts.push(`${bl.name} bots`);
+  return parts.filter(Boolean).join(' · ');
+}
+
 function clockText(progress) {
   const mins = 20 * 60 + Math.min(239, Math.floor(progress * 239));
   let hours = Math.floor(mins / 60) % 12;
@@ -540,6 +554,10 @@ function renderLobby() {
     segmented($('#len-seg'), LENGTHS, v.settings.length, (l) => send({ t: 'settings', length: l.id }));
     const diff = DIFFS.find((d) => d.id === v.settings.difficulty);
     $('#diff-blurb').textContent = diff ? diff.blurb : '';
+    const botLevel = v.settings.botLevel || 'medium';
+    segmented($('#bot-seg'), BOT_LEVELS, botLevel, (b) => send({ t: 'settings', botLevel: b.id }));
+    const bl = BOT_LEVELS.find((b) => b.id === botLevel);
+    $('#bot-blurb').textContent = bl ? bl.blurb : '';
     const bots = v.players.filter((p) => p.isBot).length;
     const humans = v.players.length - bots;
     $('#add-bot').disabled = v.players.length >= 8;
@@ -556,6 +574,7 @@ function renderLobby() {
   } else {
     const hostPlayer = S.players.get(v.hostId);
     $('#wait-text').textContent = hostPlayer ? `Waiting for ${hostPlayer.name} to start` : 'Waiting for the host to start';
+    $('#wait-settings').textContent = settingsSummary(v.settings, v.players.filter((p) => p.isBot).length);
   }
   const best = $('#best-ribbon');
   best.hidden = v.best == null;
@@ -716,7 +735,7 @@ function renderJob(mine) {
   job.append(
     h('span', { class: 'job-label', text: mine.stations.length > 1 ? 'YOUR JOBS' : 'YOUR JOB' }),
     h('span', { class: 'job-names' }, mine.stations.map((s) => h('span', { class: `job-chip st-${s}`, text: `${STATIONS[s].emoji} ${STATIONS[s].name}` }))),
-    h('span', { class: 'job-hint', text: 'Pass everything else!' }));
+    h('button', { class: 'help-btn', type: 'button', 'data-help': '1', 'aria-label': 'How to play' }, '❓ How to play'));
   if (changed) {
     job.classList.remove('flash');
     void job.offsetWidth;
@@ -1185,8 +1204,6 @@ function renderResults() {
 function buildReport(v, res) {
   const wrap = $('#results');
   wrap.innerHTML = '';
-  const diff = DIFFS.find((d) => d.id === res.difficulty);
-  const len = LENGTHS.find((l) => l.id * 1000 === res.length);
   const maxCount = Math.max(1, ...Object.values(res.grades));
   const bars = h('div', { class: 'grade-bars' }, ['A', 'B', 'C', 'D', 'F'].map((g) => h('div', { class: 'gbar' },
     gradePill(g),
@@ -1211,7 +1228,7 @@ function buildReport(v, res) {
     h('div', { class: 'report-head' },
       h('div', { class: 'school', text: 'Night Owl University' }),
       h('h2', { text: 'Semester Report Card' }),
-      h('div', { class: 'report-meta', text: `${diff ? diff.label : ''} · ${len ? len.label : ''} · Room ${v.code}` })),
+      h('div', { class: 'report-meta', text: `${settingsSummary({ difficulty: res.difficulty, length: res.length / 1000, botLevel: res.botLevel }, res.bots)} · Room ${v.code}` })),
     h('div', { class: 'report-grade' },
       h('div', { class: 'big-stamp', style: { '--sc': GRADE_COLORS[res.letter] || '#888' }, text: res.letter }),
       h('div', { class: 'gpa-big' }, h('span', { class: 'n', id: 'gpa-count', text: '0.00' }), h('small', { text: 'GROUP GPA' }))),
@@ -1467,10 +1484,42 @@ function enterRoom(code) {
 }
 
 function confirmLeave() {
+  sfx.tap();
+  const inRound = !!S.view && (S.view.phase === 'playing' || S.view.phase === 'countdown');
   showModal({
-    emoji: '🚪', title: 'Leave the room?', text: 'You can rejoin later with the room code.',
+    emoji: '🚪',
+    title: inRound ? 'Leave the game?' : 'Leave the room?',
+    text: inRound ? 'Your folders will go to your teammates. You can rejoin with the room code.' : 'You can rejoin later with the room code.',
     actions: [{ label: 'Leave', primary: true, onClick: () => { send({ t: 'leave' }); setTimeout(goHome, 150); } }, { label: 'Stay' }],
   });
+}
+
+// ---------- instructions
+const HELP_TABS = ['basics', 'jobs', 'chaos', 'grades'];
+
+function openHelp(tab) {
+  selectHelpTab(tab || S.helpTab || 'basics');
+  $('#help-live').hidden = !(S.view && (S.view.phase === 'playing' || S.view.phase === 'countdown'));
+  $('#help').hidden = false;
+  sfx.tap();
+  const active = document.querySelector('.help-tab.on');
+  if (active) active.focus({ preventScroll: true });
+}
+
+function closeHelp() {
+  $('#help').hidden = true;
+}
+
+function selectHelpTab(tab) {
+  S.helpTab = tab;
+  for (const b of document.querySelectorAll('.help-tab')) {
+    const on = b.dataset.tab === tab;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', String(on));
+    b.tabIndex = on ? 0 : -1;
+  }
+  for (const p of document.querySelectorAll('.help-panel')) p.hidden = p.dataset.panel !== tab;
+  $('#help .help-card').scrollTop = 0;
 }
 
 async function invite() {
@@ -1527,6 +1576,7 @@ function init() {
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (!$('#modal').hidden) hideModal();
+    else if (!$('#help').hidden) closeHelp();
     else if (!$('#picker').hidden) closePicker();
     else if (currentTask()) closeTask();
     else if (!$('#jobcard').hidden) $('#jobcard').hidden = true;
@@ -1560,6 +1610,21 @@ function init() {
   }
 
   $('#lobby-leave').addEventListener('click', confirmLeave);
+  $('#game-leave').addEventListener('click', confirmLeave);
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-help]')) openHelp(); });
+  for (const b of document.querySelectorAll('.help-tab')) {
+    b.addEventListener('click', () => { sfx.tap(); selectHelpTab(b.dataset.tab); });
+  }
+  $('#help .help-tabs').addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    e.preventDefault();
+    const i = HELP_TABS.indexOf(S.helpTab || 'basics');
+    const next = HELP_TABS[(i + (e.key === 'ArrowRight' ? 1 : HELP_TABS.length - 1)) % HELP_TABS.length];
+    selectHelpTab(next);
+    document.querySelector(`.help-tab[data-tab="${next}"]`).focus();
+  });
+  $('#help .help-close').addEventListener('click', () => { sfx.tap(); closeHelp(); });
+  $('#help').addEventListener('click', (e) => { if (e.target.id === 'help') closeHelp(); });
   $('#lobby-sound').addEventListener('click', toggleSound);
   $('#game-sound').addEventListener('click', toggleSound);
   $('#invite-btn').addEventListener('click', invite);

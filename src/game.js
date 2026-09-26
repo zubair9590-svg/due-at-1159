@@ -2,7 +2,7 @@
 // Pure JavaScript with no platform APIs, so it runs the same inside the
 // Cloudflare Durable Object and in plain Node for tests.
 import {
-  STATION_IDS, ASSIGNMENT_TYPES, TOPICS, DIFFICULTY, LENGTHS, CHAT_LINES,
+  STATION_IDS, ASSIGNMENT_TYPES, TOPICS, DIFFICULTY, LENGTHS, BOT_LEVELS, CHAT_LINES,
   BOT_NAMES, FUN_NAMES, AVATARS, COLORS, makeTask, gradeFor, reportFor, GRADE_POINTS,
   AWARDS, FALLBACK_AWARD,
 } from './content.js';
@@ -67,7 +67,7 @@ export class Game {
     this.phase = 'lobby'; // lobby | countdown | playing | results
     this.players = new Map();
     this.hostId = null;
-    this.settings = { difficulty: 'sophomore', length: 180 };
+    this.settings = { difficulty: 'sophomore', length: 180, botLevel: 'medium' };
     this.round = null;
     this.results = null;
     this.best = null;
@@ -207,6 +207,7 @@ export class Game {
         if (isHost && this.phase === 'lobby') {
           if (DIFFICULTY[msg.difficulty]) this.settings.difficulty = msg.difficulty;
           if (LENGTHS.includes(msg.length)) this.settings.length = msg.length;
+          if (BOT_LEVELS[msg.botLevel]) this.settings.botLevel = msg.botLevel;
           this.touch();
         }
         break;
@@ -260,6 +261,7 @@ export class Game {
     const startAt = now + COUNTDOWN_MS;
     this.round = {
       difficulty: diff.id,
+      botLevel: this.settings.botLevel,
       length: this.settings.length * 1000,
       startAt,
       endAt: startAt + this.settings.length * 1000,
@@ -319,6 +321,8 @@ export class Game {
       newBest,
       difficulty: r.difficulty,
       length: r.length,
+      bots: everyone.filter((p) => p.isBot).length,
+      botLevel: r.botLevel,
     };
     r.folders.clear();
     this.phase = 'results';
@@ -607,11 +611,13 @@ export class Game {
   tickBots(now) {
     const r = this.round;
     const diff = DIFFICULTY[r.difficulty];
+    const lvl = BOT_LEVELS[r.botLevel] || BOT_LEVELS.medium;
+    const pause = () => between(lvl.pause[0], lvl.pause[1]);
     for (const b of this.players.values()) {
       if (!b.isBot) continue;
       const s = b.bot;
       if (b.chat.length) {
-        if (now >= s.nextAt) { b.chat.shift(); s.nextAt = now + between(500, 900); this.touch(); }
+        if (now >= s.nextAt) { b.chat.shift(); s.nextAt = now + between(lvl.chat[0], lvl.chat[1]); this.touch(); }
         continue;
       }
       if (b.wifiUntil > now) continue;
@@ -624,7 +630,7 @@ export class Game {
         if (now >= s.busyUntil) {
           this.advance(f, b, s.busyUntil - s.startedAt);
           s.workingOn = null;
-          s.nextAt = now + between(350, 800);
+          s.nextAt = now + pause() * 0.7;
         }
         continue;
       }
@@ -632,18 +638,24 @@ export class Game {
       const folders = b.desk.map((id) => r.folders.get(id)).filter(Boolean).sort((x, y) => x.dueAt - y.dueAt);
       const ready = folders.find((f) => f.ready);
       if (ready) {
-        if (r.printerUntil > now) { s.nextAt = r.printerUntil + between(200, 700); continue; }
+        if (r.printerUntil > now) { s.nextAt = r.printerUntil + pause(); continue; }
         this.submit(b, { folder: ready.id });
-        s.nextAt = now + between(500, 1000);
+        s.nextAt = now + pause();
         continue;
       }
       // A good teammate unblocks others first: pass along what we can't do.
       const other = folders.find((f) => !b.stations.includes(f.steps[f.stepIndex]));
       if (other) {
-        const to = this.bestRecipient(other, this.roster().filter((p) => p.id !== b.id), { ownersOnly: true });
+        const mates = this.roster().filter((p) => p.id !== b.id);
+        let to = this.bestRecipient(other, mates, { ownersOnly: true });
+        // Slacker bots sometimes send work to the wrong person.
+        if (to && lvl.mistake && Math.random() < lvl.mistake) {
+          const wrong = mates.filter((p) => p.id !== to.id && p.desk.length < DESK_LIMIT);
+          if (wrong.length) to = pick(wrong);
+        }
         if (to) {
           this.pass(b, { folder: other.id, to: to.id });
-          s.nextAt = now + between(500, 1100);
+          s.nextAt = now + pause();
           continue;
         }
       }
@@ -651,7 +663,7 @@ export class Game {
       if (mine) {
         s.workingOn = mine.id;
         s.startedAt = now;
-        s.busyUntil = now + between(diff.botStep[0], diff.botStep[1]);
+        s.busyUntil = now + between(diff.botStep[0], diff.botStep[1]) * lvl.speed;
         this.touch();
         continue;
       }

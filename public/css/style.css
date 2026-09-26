@@ -299,12 +299,15 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
 .wait-panel .big-emoji { font-size: 2.6rem; display: block; margin-bottom: 8px; animation: avatar-bounce 1.6s ease-in-out infinite; }
 .dots::after { content: ''; animation: dots 1.4s steps(4) infinite; }
 @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.wait-settings { display: block; margin-top: 8px; font-size: 0.85rem; color: var(--ink-faint); }
 .best-ribbon { justify-self: center; padding: 6px 14px; border-radius: 99px; background: rgba(57, 217, 138, 0.15); border: 1px solid rgba(57, 217, 138, 0.45); font-weight: 700; font-size: 0.9rem; }
 
 /* ------------------------------------------------------------ game hud */
 #screen-game { padding-top: calc(8px + var(--safe-top)); gap: 10px; overflow: hidden; }
+.icon-btn.text-btn { width: auto; padding: 0 14px; font-size: 0.92rem; font-weight: 700; }
+.hud .icon-btn { width: 40px; height: 40px; }
 .hud {
-  display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px;
+  display: grid; grid-template-columns: auto 1fr auto auto auto; align-items: center; gap: 10px;
   padding: 10px 12px; border-radius: 18px; background: rgba(8, 11, 30, 0.72); border: 1px solid var(--line);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: var(--shadow);
 }
@@ -768,12 +771,71 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
 .transcript .t-by { font-size: 0.75rem; color: var(--paper-dim); font-weight: 600; }
 .results-actions { display: grid; gap: 10px; }
 
+/* ------------------------------------------------------------ instructions */
+.topbar-right { display: flex; gap: 8px; }
+.help-btn {
+  margin-left: auto; min-height: 36px; padding: 6px 12px; border-radius: 99px; white-space: nowrap;
+  background: rgba(255, 255, 255, 0.1); border: 1px solid var(--line); color: var(--ink); font-weight: 700; font-size: 0.82rem;
+}
+.help-btn:active { transform: scale(0.95); }
+#help { z-index: 100; padding: 12px; background: rgba(4, 6, 20, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.help-card {
+  width: min(100%, 580px); max-height: min(88dvh, 820px); overflow-y: auto; padding: 18px 18px 22px; border-radius: 24px;
+  color: var(--paper-ink); background: linear-gradient(180deg, var(--paper), var(--paper-2));
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55); animation: pop-in 0.35s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+.help-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.help-head h2 { margin: 0; font-size: 1.45rem; }
+.help-live { margin: 10px 0 0; padding: 8px 12px; border-radius: 12px; background: #ffe1e2; color: #a3232b; font-weight: 700; font-size: 0.88rem; }
+.help-tabs {
+  position: sticky; top: -18px; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  margin: 14px 0; padding: 6px; border-radius: 16px; background: #efe4c6; box-shadow: 0 6px 12px rgba(42, 39, 51, 0.08);
+}
+.help-tab { min-height: 42px; min-width: 0; border-radius: 12px; font-weight: 800; font-size: 0.88rem; color: #6d6778; white-space: nowrap; transition: background 0.2s, color 0.2s; }
+.help-tab.on { background: #1f1c29; color: #fff; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22); }
+.help-panel { display: grid; gap: 12px; animation: rise 0.3s ease both; }
+.help-panel p { margin: 0; }
+.help-lead { font-size: 1.02rem; }
+.help-steps, .chaos-list, .grade-guide, .diff-guide, .chart-guide { list-style: none; margin: 0; padding: 0; }
+.help-steps { display: grid; gap: 8px; }
+.help-steps li, .chaos-list li {
+  display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; padding: 10px; border-radius: 14px;
+  background: #fff; box-shadow: 0 4px 10px rgba(42, 39, 51, 0.08); font-size: 0.93rem;
+}
+.help-steps b, .chaos-list b, .diff-guide b { display: block; }
+.hs-icon, .cl-icon { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 1.3rem; background: #f6efdc; }
+.cl-icon { background: var(--ev); }
+.help-steps .job-chip { font-size: 0.74rem; padding: 2px 8px; margin: 2px 0; }
+.help-tips { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: rgba(90, 169, 255, 0.14); border: 1px solid rgba(90, 169, 255, 0.35); font-size: 0.92rem; }
+.help-job { padding: 12px 14px; border-radius: 14px; background: #fff; border-left: 6px solid var(--c); box-shadow: 0 4px 10px rgba(42, 39, 51, 0.08); }
+.help-job h3 { margin: 0 0 6px; font-size: 1.1rem; }
+.help-job p { font-size: 0.95rem; }
+.help-job p + p { margin-top: 6px; }
+.good-bad { display: grid; gap: 4px; }
+.gb { font-size: 0.85rem; font-weight: 700; padding: 5px 9px; border-radius: 9px; }
+.gb.good { background: #dcfbe9; color: #17744a; }
+.gb.bad { background: #ffe1e2; color: #a3232b; }
+.chart-guide { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin-top: 8px; font-size: 0.86rem; color: var(--paper-dim); }
+.chart-guide b { display: block; color: var(--paper-ink); }
+.help-note { font-size: 0.9rem; color: var(--paper-dim); }
+.chaos-list { display: grid; gap: 8px; }
+.grade-guide { display: grid; gap: 8px; }
+.grade-guide li { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+.diff-guide { display: grid; gap: 6px; }
+.diff-guide li { padding: 8px 12px; border-radius: 12px; background: #fff; font-size: 0.9rem; color: var(--paper-dim); }
+.help-sub { margin: 4px 0 0; font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper-dim); }
+@media (max-width: 420px) {
+  .help-tabs { grid-template-columns: 1fr 1fr; }
+  .chart-guide { grid-template-columns: 1fr; }
+}
+
 /* Grid children may shrink below their content width on very narrow screens. */
 .home-wrap > *, .lobby-wrap > *, .results-wrap > *, .game-body > *, .host-panel > *, .setting > * { min-width: 0; }
 .invite-row .btn { flex: 1 1 auto; }
 .segmented button { min-width: 0; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 360px) {
   #diff-seg { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+  .segmented button { font-size: 0.8rem; }
 }
 
 /* ------------------------------------------------------------ wide screens */

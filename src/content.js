@@ -51,6 +51,15 @@ export const DIFFICULTY = {
 };
 export const LENGTHS = [120, 180, 270];
 
+// Bots are teammates, so "difficulty" is how much they help you.
+// speed multiplies how long a task takes; pause is the gap between actions;
+// mistake is the chance of passing a folder to the wrong person.
+export const BOT_LEVELS = {
+  easy: { id: 'easy', label: 'Easy', speed: 0.55, pause: [150, 400], chat: [250, 450], mistake: 0 },
+  medium: { id: 'medium', label: 'Medium', speed: 1.3, pause: [600, 1200], chat: [600, 1000], mistake: 0.03 },
+  hard: { id: 'hard', label: 'Hard', speed: 2.1, pause: [1100, 2000], chat: [1100, 1700], mistake: 0.15 },
+};
+
 export const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐯', '🐙', '🦄', '🐨'];
 export const COLORS = ['#FF7A6B', '#3FD3C6', '#FFD24D', '#9B8CFF', '#FF9F43', '#5AA9FF', '#39D98A', '#FF6FD8'];
 export const BOT_NAMES = ['Ada', 'Alan', 'Grace', 'Marie', 'Nikola', 'Rosalind', 'Carl', 'Katherine'];
