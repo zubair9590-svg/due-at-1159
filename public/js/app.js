@@ -24,10 +24,11 @@ const DIFFS = [
   { id: 'senior', label: 'Senior', blurb: 'Finals week. Good luck.' },
 ];
 const LENGTHS = [{ id: 120, label: '2 min' }, { id: 180, label: '3 min' }, { id: 270, label: '4½ min' }];
-const BOT_LEVELS = [
-  { id: 'easy', label: '😇 Easy', name: 'Easy', blurb: 'Bots are fast, helpful teammates.' },
-  { id: 'medium', label: '🙂 Medium', name: 'Medium', blurb: 'Bots work at a normal pace.' },
-  { id: 'hard', label: '😴 Hard', name: 'Hard', blurb: 'Bots are slow slackers who sometimes send folders to the wrong person. Carry the group!' },
+const RIVALS = [
+  { id: 'off', label: 'Off', name: '', blurb: 'No rivals. Just you against the clock.' },
+  { id: 'easy', label: '😴 Easy', name: 'Easy', blurb: 'Race a lazy rival group. Easy to beat.' },
+  { id: 'medium', label: '🙂 Medium', name: 'Medium', blurb: 'Race a solid rival group. A fair fight.' },
+  { id: 'hard', label: '😈 Hard', name: 'Hard', blurb: 'Race The Overachievers at full power. Very hard to beat!' },
 ];
 const EVENTS = {
   wifi: { emoji: '📶', title: 'Wi-Fi is down!', text: (fx, you) => (fx.targetId === you ? 'Your Wi-Fi dropped! Hang tight…' : `${fx.targetName}'s Wi-Fi dropped. Cover for them!`) },
@@ -166,12 +167,12 @@ function gpaColor(gpa) {
   if (gpa >= 0.5) return 'var(--gD)';
   return 'var(--gF)';
 }
-function settingsSummary(settings, bots) {
+function settingsSummary(settings) {
   const diff = DIFFS.find((d) => d.id === settings.difficulty);
   const len = LENGTHS.find((l) => l.id === settings.length);
-  const bl = BOT_LEVELS.find((b) => b.id === (settings.botLevel || 'medium'));
+  const rv = RIVALS.find((r) => r.id === settings.rival);
   const parts = [diff && diff.label, len && len.label];
-  if (bots && bl) parts.push(`${bl.name} bots`);
+  if (rv && rv.id !== 'off') parts.push(`${rv.name} rivals`);
   return parts.filter(Boolean).join(' · ');
 }
 
@@ -471,7 +472,7 @@ function handleFx(fx, view) {
     case 'joined':
       if (fx.id !== you) {
         sfx.join();
-        if (view.phase !== 'lobby' || !fx.bot) toast(`👋 ${fx.name} joined${fx.late ? ' (late, typical)' : ''}`);
+        if (!fx.bot) toast(`👋 ${fx.name} joined${fx.late ? ' (late, typical)' : ''}`);
       }
       break;
     case 'left':
@@ -487,6 +488,22 @@ function handleFx(fx, view) {
     case 'host':
       if (fx.id === you) toast('👑 You are the host now.', 'good');
       break;
+    case 'lead': {
+      const box = $('#versus');
+      box.classList.remove('flash');
+      void box.offsetWidth;
+      box.classList.add('flash');
+      if (fx.leader === 'you') {
+        sfx.extension();
+        haptic(HAPTIC.success);
+        toast(`💪 Your group took the lead over ${fx.rival}!`, 'good');
+      } else {
+        sfx.late(false);
+        haptic(HAPTIC.wrong);
+        toast(`🤓 ${fx.rival} took the lead!`, 'warn');
+      }
+      break;
+    }
     case 'err':
       handleError(fx);
       break;
@@ -554,10 +571,10 @@ function renderLobby() {
     segmented($('#len-seg'), LENGTHS, v.settings.length, (l) => send({ t: 'settings', length: l.id }));
     const diff = DIFFS.find((d) => d.id === v.settings.difficulty);
     $('#diff-blurb').textContent = diff ? diff.blurb : '';
-    const botLevel = v.settings.botLevel || 'medium';
-    segmented($('#bot-seg'), BOT_LEVELS, botLevel, (b) => send({ t: 'settings', botLevel: b.id }));
-    const bl = BOT_LEVELS.find((b) => b.id === botLevel);
-    $('#bot-blurb').textContent = bl ? bl.blurb : '';
+    const rivalLevel = v.settings.rival || 'off';
+    segmented($('#rival-seg'), RIVALS, rivalLevel, (r) => send({ t: 'settings', rival: r.id }));
+    const rv = RIVALS.find((r) => r.id === rivalLevel);
+    $('#rival-blurb').textContent = rv ? rv.blurb : '';
     const bots = v.players.filter((p) => p.isBot).length;
     const humans = v.players.length - bots;
     $('#add-bot').disabled = v.players.length >= 8;
@@ -574,7 +591,7 @@ function renderLobby() {
   } else {
     const hostPlayer = S.players.get(v.hostId);
     $('#wait-text').textContent = hostPlayer ? `Waiting for ${hostPlayer.name} to start` : 'Waiting for the host to start';
-    $('#wait-settings').textContent = settingsSummary(v.settings, v.players.filter((p) => p.isBot).length);
+    $('#wait-settings').textContent = settingsSummary(v.settings);
   }
   const best = $('#best-ribbon');
   best.hidden = v.best == null;
@@ -687,11 +704,33 @@ function renderGame() {
     void gpaEl.offsetWidth;
     gpaEl.classList.add('pop');
   }
+  renderVersus(r);
   renderTeam(v);
   if (mine) renderJob(mine);
   renderDesk(v, r, mine);
   renderBoard(v, r);
   renderBlockers(r);
+}
+
+// Tug-of-war bar: your group's GPA against the rival group's.
+function renderVersus(r) {
+  const box = $('#versus');
+  const rival = r.rival;
+  box.hidden = !rival;
+  if (!rival) return;
+  const mine = r.score.gpa;
+  const theirs = rival.gpa;
+  const youText = mine == null ? '–' : mine.toFixed(2);
+  const rivalText = theirs == null ? '–' : theirs.toFixed(2);
+  if ($('#vs-you').textContent !== youText) $('#vs-you').textContent = youText;
+  if ($('#vs-rival').textContent !== rivalText) $('#vs-rival').textContent = rivalText;
+  const a = mine == null ? 0.5 : mine + 0.5;
+  const b = theirs == null ? 0.5 : theirs + 0.5;
+  const share = `${(a / (a + b)) * 100}%`;
+  $('#vs-fill').style.width = share;
+  box.querySelector('.vs-mid').style.left = share;
+  box.classList.toggle('ahead', mine != null && theirs != null && mine > theirs);
+  box.classList.toggle('behind', mine != null && theirs != null && theirs > mine);
 }
 
 function renderTeam(v) {
@@ -1074,6 +1113,7 @@ function startCountdown(view) {
   el.append(h('div', { class: 'cd-wrap' },
     h('p', { class: 'cd-line', text: "It's 8:00 PM." }),
     h('p', { class: 'cd-line sub', text: 'The group project is due at 11:59. Talk to each other!' }),
+    view.round && view.round.rival ? h('p', { class: 'cd-line sub cd-rival', text: `⚔️ Beat ${view.round.rival.name} 🤓 to the best GPA!` }) : null,
     h('div', { class: 'cd-num', id: 'cd-num' }),
     h('div', { class: 'cd-job' }, jobCard(stations, stations.length > 1 ? 'YOUR JOBS' : 'YOUR JOB'))));
   S.cdLast = null;
@@ -1228,7 +1268,7 @@ function buildReport(v, res) {
     h('div', { class: 'report-head' },
       h('div', { class: 'school', text: 'Night Owl University' }),
       h('h2', { text: 'Semester Report Card' }),
-      h('div', { class: 'report-meta', text: `${settingsSummary({ difficulty: res.difficulty, length: res.length / 1000, botLevel: res.botLevel }, res.bots)} · Room ${v.code}` })),
+      h('div', { class: 'report-meta', text: `${settingsSummary({ difficulty: res.difficulty, length: res.length / 1000, rival: res.rival ? res.rival.level : 'off' })} · Room ${v.code}` })),
     h('div', { class: 'report-grade' },
       h('div', { class: 'big-stamp', style: { '--sc': GRADE_COLORS[res.letter] || '#888' }, text: res.letter }),
       h('div', { class: 'gpa-big' }, h('span', { class: 'n', id: 'gpa-count', text: '0.00' }), h('small', { text: 'GROUP GPA' }))),
@@ -1239,16 +1279,33 @@ function buildReport(v, res) {
     stats,
     h('h3', { text: 'Awards' }), awards,
     h('h3', { text: 'Transcript' }), transcript);
+  if (res.rival) wrap.append(versusResult(res));
   wrap.append(report, h('div', { class: 'results-actions', id: 'results-actions' }));
   wrap.parentElement.scrollTop = 0;
   animateReport(res, report);
 }
 
+function versusResult(res) {
+  const rv = res.rival;
+  const level = RIVALS.find((r) => r.id === rv.level);
+  const title = rv.outcome === 'win' ? `🏆 You beat ${rv.name}!` : rv.outcome === 'lose' ? `😤 ${rv.name} won this time` : `🤝 It's a tie with ${rv.name}!`;
+  const sub = rv.outcome === 'lose' ? 'Rematch? Talk more and pass faster.' : rv.outcome === 'win' ? 'Your group had the better semester.' : 'Dead even. Play again to settle it!';
+  return h('div', { class: `versus-result ${rv.outcome}` },
+    h('div', { class: 'vr-title', text: title }),
+    h('div', { class: 'vr-scores' },
+      h('span', {}, '🙋 Your group ', h('b', { text: res.gpa.toFixed(2) })),
+      h('span', { class: 'vr-vs', text: 'vs' }),
+      h('span', {}, h('b', { text: rv.gpa.toFixed(2) }), ' 🤓 Rivals')),
+    h('div', { class: 'vr-sub', text: `${level ? `${level.name} rivals · ` : ''}${sub}` }));
+}
+
 function animateReport(res, report) {
-  const good = res.letter === 'A' || res.letter === 'B';
+  // With rivals, winning the race decides the celebration; otherwise the letter grade does.
+  const won = res.rival ? res.rival.outcome === 'win' : res.letter === 'A' || res.letter === 'B';
+  const lost = res.rival ? res.rival.outcome === 'lose' : res.letter !== 'I';
   setTimeout(() => { sfx.stamp(); haptic(HAPTIC.submit); shake(report); }, 650);
   setTimeout(() => {
-    if (good) { sfx.fanfare(); rain(); } else if (res.letter !== 'I') sfx.wahwah();
+    if (won) { sfx.fanfare(); rain(); } else if (lost) sfx.wahwah();
   }, 1050);
   setTimeout(() => { for (const i of report.querySelectorAll('.track i')) i.style.width = `${i.dataset.w}%`; }, 300);
   const counter = report.querySelector('#gpa-count');

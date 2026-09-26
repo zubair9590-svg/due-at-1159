@@ -105,9 +105,9 @@
             </div>
           </div>
           <div class="setting">
-            <span class="setting-label">Bot difficulty</span>
-            <div class="segmented" id="bot-seg" role="group" aria-label="Bot difficulty"></div>
-            <div class="setting-blurb" id="bot-blurb"></div>
+            <span class="setting-label">⚔️ Rival bots</span>
+            <div class="segmented" id="rival-seg" role="group" aria-label="Rival bots"></div>
+            <div class="setting-blurb" id="rival-blurb"></div>
           </div>
           <div class="solo-tip" id="solo-tip" hidden>🎒 Playing alone? Quick play adds 3 bots who take the other jobs. Or open this page in a second tab to see the real-time sync.</div>
           <div class="start-row">
@@ -144,6 +144,11 @@
         <button class="icon-btn" id="game-sound" type="button" aria-label="Sound">🔊</button>
         <button class="icon-btn" id="game-leave" type="button" aria-label="Leave the game" title="Leave the game">🚪</button>
       </header>
+      <div class="versus" id="versus" hidden aria-label="Race against the rival group">
+        <span class="vs-side vs-you">🙋 You <b id="vs-you">–</b></span>
+        <div class="vs-bar" aria-hidden="true"><i id="vs-fill"></i><span class="vs-mid">⚔️</span></div>
+        <span class="vs-side vs-rival"><b id="vs-rival">–</b> 🤓 Rivals</span>
+      </div>
       <div class="team" id="team" aria-label="Your team"></div>
       <div class="job" id="job"></div>
       <div class="game-body">
@@ -205,6 +210,7 @@
         <div class="help-tips">
           <b>Tips</b>
           <span>🤖 Playing alone? Tap <b>Quick play</b> and bots take the other jobs.</span>
+          <span>⚔️ Beat the rival bots: get a higher GPA than The Overachievers by 11:59.</span>
           <span>🔴 A red, shaking folder has 5 seconds left. Hurry!</span>
           <span>📋 Tap <b>Everyone's assignments</b> to see where every folder is.</span>
         </div>
@@ -271,11 +277,13 @@
           <li><b>Junior</b> Tighter deadlines, and work lands on the wrong desk.</li>
           <li><b>Senior</b> Finals week. Good luck.</li>
         </ul>
-        <h3 class="help-sub">Bot difficulty</h3>
+        <h3 class="help-sub">⚔️ Rival bots</h3>
+        <p>Race a rival bot group, <b>The Overachievers 🤓</b>, doing the same kind of work at the same time. The bar at the top shows who's ahead. Beat their GPA by 11:59 to win!</p>
         <ul class="diff-guide">
-          <li><b>😇 Easy</b> Bots are fast, helpful teammates.</li>
-          <li><b>🙂 Medium</b> Bots work at a normal pace.</li>
-          <li><b>😴 Hard</b> Bots are slow slackers who sometimes send folders to the wrong person. Carry the group!</li>
+          <li><b>😴 Easy</b> A lazy rival group. Easy to beat.</li>
+          <li><b>🙂 Medium</b> A solid rival group. A fair fight.</li>
+          <li><b>😈 Hard</b> The Overachievers at full power. Very hard to beat!</li>
+          <li><b>Off</b> No rivals. Just you against the clock.</li>
         </ul>
         <h3 class="help-sub">Buttons</h3>
         <ul class="diff-guide">

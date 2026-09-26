@@ -60,6 +60,28 @@ function runTimers(clock) {
 
 const RUNS = 12;
 
+// The rival group on its own: bots only, same settings, by rival level.
+function simulateRival({ difficulty, size, level, length = 180 }) {
+  const clock = { t: 1_000_000 };
+  const g = new Game('RIVL', () => clock.t);
+  g.settings = { difficulty, length, botLevel: `rival-${level}`, rival: 'off' };
+  for (let i = 0; i < size; i++) g.addBot();
+  g.startCountdown();
+  while (g.phase !== 'results') { clock.t += 100; g.tick(); g.drainFx(); }
+  return g.results.gpa;
+}
+for (const size of [1, 4]) {
+  console.log(`\nrival group of ${size}, GPA by difficulty (easy / medium / hard rivals)`);
+  for (const difficulty of ['freshman', 'sophomore', 'junior', 'senior']) {
+    const cells = ['easy', 'medium', 'hard'].map((level) => {
+      let gpa = 0;
+      for (let i = 0; i < RUNS; i++) gpa += simulateRival({ difficulty, size, level });
+      return (gpa / RUNS).toFixed(2);
+    });
+    console.log(`  ${difficulty.padEnd(9)} ${cells.join(' / ')}`);
+  }
+}
+
 console.log('\nsolo + 3 bots at Sophomore, by bot difficulty');
 for (const botLevel of ['easy', 'medium', 'hard']) {
   let gpa = 0;

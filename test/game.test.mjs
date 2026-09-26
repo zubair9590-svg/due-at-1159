@@ -221,6 +221,49 @@ test('bot difficulty changes how fast the bots work', () => {
   assert.ok(avgTaskMs.easy < avgTaskMs.medium && avgTaskMs.medium < avgTaskMs.hard, `average bot task time: ${JSON.stringify(avgTaskMs)}`);
 });
 
+test('rival groups race you, get stronger by level, and the report card names a winner', () => {
+  const avg = {};
+  for (const level of ['easy', 'medium', 'hard']) {
+    let gpa = 0;
+    for (let i = 0; i < 4; i++) {
+      const clock = makeClock();
+      const game = new Game('RIVA', clock.now);
+      const host = game.join({ name: 'Host' }).player;
+      game.handle(host.id, { t: 'settings', rival: level, length: 120 });
+      game.handle(host.id, { t: 'settings', rival: 'impossible' }); // ignored
+      assert.equal(game.settings.rival, level);
+      game.handle(host.id, { t: 'quickplay' });
+      assert.ok(game.rival, 'a rival group was created');
+      assert.equal(game.rival.players.size, 4, 'the rival group matches our group size');
+      let sawRival = false;
+      runRound(game, clock, [host.id], {
+        onStep(step) {
+          if (step % 50) return;
+          const v = game.viewFor(host.id);
+          if (v.round && v.round.rival && v.round.rival.name) sawRival = true;
+        },
+      });
+      assert.ok(sawRival, 'players can see the rival score during the round');
+      const r = game.results.rival;
+      assert.ok(r && ['win', 'lose', 'tie'].includes(r.outcome), 'the report card names a winner');
+      assert.equal(r.level, level);
+      gpa += r.gpa;
+    }
+    avg[level] = gpa / 4;
+  }
+  assert.ok(avg.easy < avg.medium && avg.medium < avg.hard, `rival GPA by level: ${JSON.stringify(avg)}`);
+
+  // Rivals can be switched off.
+  const clock = makeClock();
+  const game = new Game('SOLO', clock.now);
+  const host = game.join({ name: 'Host' }).player;
+  game.handle(host.id, { t: 'settings', rival: 'off' });
+  game.handle(host.id, { t: 'start' });
+  assert.equal(game.rival, null);
+  runRound(game, clock, [host.id]);
+  assert.equal(game.results.rival, null);
+});
+
 test('rooms cap at 8 players and bots make room for humans in the lobby', () => {
   const clock = makeClock();
   const game = new Game('FULL', clock.now);

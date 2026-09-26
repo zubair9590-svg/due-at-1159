@@ -51,14 +51,24 @@ export const DIFFICULTY = {
 };
 export const LENGTHS = [120, 180, 270];
 
-// Bots are teammates, so "difficulty" is how much they help you.
-// speed multiplies how long a task takes; pause is the gap between actions;
-// mistake is the chance of passing a folder to the wrong person.
+// How bots behave. speed multiplies how long a task takes; pause is the gap
+// between actions; mistake is the chance of passing a folder to the wrong person.
+// Teammate bots use "medium". The rival-* levels drive the rival group.
 export const BOT_LEVELS = {
-  easy: { id: 'easy', label: 'Easy', speed: 0.55, pause: [150, 400], chat: [250, 450], mistake: 0 },
-  medium: { id: 'medium', label: 'Medium', speed: 1.3, pause: [600, 1200], chat: [600, 1000], mistake: 0.03 },
-  hard: { id: 'hard', label: 'Hard', speed: 2.1, pause: [1100, 2000], chat: [1100, 1700], mistake: 0.15 },
+  easy: { id: 'easy', speed: 0.55, pause: [150, 400], chat: [250, 450], mistake: 0 },
+  medium: { id: 'medium', speed: 1, pause: [450, 1000], chat: [500, 900], mistake: 0 },
+  hard: { id: 'hard', speed: 2.1, pause: [1100, 2000], chat: [1100, 1700], mistake: 0.15 },
+  // Rivals work at the same base pace on every difficulty (tuned with test/rival-tune.mjs):
+  // at Sophomore a player with 3 bot teammates scores about 3.4; the rivals score
+  // about 2.3 (easy), 3.4 (medium) and 3.8 (hard).
+  'rival-easy': { id: 'rival-easy', speed: 2.0, pause: [1100, 2000], chat: [1200, 1800], mistake: 0.15, baseStep: [3200, 4600] },
+  'rival-medium': { id: 'rival-medium', speed: 1.6, pause: [800, 1500], chat: [800, 1200], mistake: 0.07, baseStep: [3200, 4600] },
+  'rival-hard': { id: 'rival-hard', speed: 1.3, pause: [550, 1100], chat: [500, 800], mistake: 0.03, baseStep: [3200, 4600] },
 };
+
+// A rival bot group races your group on the same kind of work.
+export const RIVAL_LEVELS = ['off', 'easy', 'medium', 'hard'];
+export const RIVAL_NAME = 'The Overachievers';
 
 export const AVATARS = ['🦊', '🐼', '🐸', '🦉', '🐯', '🐙', '🦄', '🐨'];
 export const COLORS = ['#FF7A6B', '#3FD3C6', '#FFD24D', '#9B8CFF', '#FF9F43', '#5AA9FF', '#39D98A', '#FF6FD8'];

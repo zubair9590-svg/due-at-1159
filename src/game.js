@@ -2,7 +2,7 @@
 // Pure JavaScript with no platform APIs, so it runs the same inside the
 // Cloudflare Durable Object and in plain Node for tests.
 import {
-  STATION_IDS, ASSIGNMENT_TYPES, TOPICS, DIFFICULTY, LENGTHS, BOT_LEVELS, CHAT_LINES,
+  STATION_IDS, ASSIGNMENT_TYPES, TOPICS, DIFFICULTY, LENGTHS, BOT_LEVELS, RIVAL_LEVELS, RIVAL_NAME, CHAT_LINES,
   BOT_NAMES, FUN_NAMES, AVATARS, COLORS, makeTask, gradeFor, reportFor, GRADE_POINTS,
   AWARDS, FALLBACK_AWARD,
 } from './content.js';
@@ -55,6 +55,13 @@ function newStats() {
 }
 const round2 = (x) => Math.round(x * 100) / 100;
 
+// GPA and counts for a list of graded assignments (null GPA when nothing is graded yet).
+function scoreOf(archive) {
+  const points = archive.reduce((s, a) => s + GRADE_POINTS[a.grade], 0);
+  const late = archive.filter((a) => a.grade === 'F').length;
+  return { gpa: archive.length ? round2(points / archive.length) : null, submitted: archive.length - late, late };
+}
+
 export function cleanName(raw) {
   if (typeof raw !== 'string') return '';
   return raw.replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 16);
@@ -67,7 +74,8 @@ export class Game {
     this.phase = 'lobby'; // lobby | countdown | playing | results
     this.players = new Map();
     this.hostId = null;
-    this.settings = { difficulty: 'sophomore', length: 180, botLevel: 'medium' };
+    this.settings = { difficulty: 'sophomore', length: 180, botLevel: 'medium', rival: 'medium' };
+    this.rival = null; // a bots-only Game racing this one, when rivals are on
     this.round = null;
     this.results = null;
     this.best = null;
@@ -208,6 +216,7 @@ export class Game {
           if (DIFFICULTY[msg.difficulty]) this.settings.difficulty = msg.difficulty;
           if (LENGTHS.includes(msg.length)) this.settings.length = msg.length;
           if (BOT_LEVELS[msg.botLevel]) this.settings.botLevel = msg.botLevel;
+          if (RIVAL_LEVELS.includes(msg.rival)) this.settings.rival = msg.rival;
           this.touch();
         }
         break;
@@ -275,15 +284,60 @@ export class Game {
       spawned: 0,
       lastTopics: [],
       lastEvent: null,
+      rivalLevel: null,
+      leader: null,
+      rivalSig: '',
     };
     this.results = null;
+    this.startRival();
     this.phase = 'countdown';
     this.emit('all', { k: 'countdown' });
+  }
+
+  // The rival group is a second, bots-only Game with the same settings and the
+  // same number of players, started at the same moment so the race is fair.
+  startRival() {
+    this.rival = null;
+    const level = this.settings.rival;
+    if (!level || level === 'off') return;
+    const rival = new Game(`${this.code}-rival`, this.now);
+    rival.settings = { difficulty: this.settings.difficulty, length: this.settings.length, botLevel: `rival-${level}`, rival: 'off' };
+    const size = Math.max(1, Math.min(8, this.roster().length));
+    for (let i = 0; i < size; i++) rival.addBot();
+    rival.startCountdown();
+    rival.drainFx();
+    this.rival = rival;
+    this.round.rivalLevel = level;
+  }
+
+  tickRival() {
+    const rival = this.rival;
+    if (!rival) return;
+    if (rival.phase === 'countdown' || rival.phase === 'playing') rival.tick();
+    rival.drainFx();
+    rival.drainCloses();
+    const r = this.round;
+    const theirs = scoreOf(rival.round.archive);
+    const ours = scoreOf(r.archive);
+    const sig = `${theirs.gpa}|${theirs.submitted}|${theirs.late}`;
+    if (sig !== r.rivalSig) { r.rivalSig = sig; this.touch(); }
+    if (ours.gpa == null || theirs.gpa == null) return;
+    const leader = ours.gpa > theirs.gpa ? 'you' : theirs.gpa > ours.gpa ? 'rival' : r.leader;
+    if (leader && leader !== r.leader) {
+      if (r.leader) this.emit('all', { k: 'lead', leader, rival: RIVAL_NAME });
+      r.leader = leader;
+    }
+  }
+
+  rivalView() {
+    if (!this.rival || !this.round) return null;
+    return { name: RIVAL_NAME, level: this.round.rivalLevel, ...scoreOf(this.rival.round.archive) };
   }
 
   backToLobby() {
     this.phase = 'lobby';
     this.round = null;
+    this.rival = null;
     for (const p of this.players.values()) {
       p.desk = [];
       p.stations = [];
@@ -296,6 +350,7 @@ export class Game {
   finishRound() {
     const r = this.round;
     const now = this.now();
+    if (this.rival && this.rival.phase !== 'results') this.rival.finishRound();
     const unfinished = [...r.folders.values()];
     for (const p of this.players.values()) { p.desk = []; p.chat = []; p.wifiUntil = 0; }
     const resolved = r.archive;
@@ -323,11 +378,20 @@ export class Game {
       length: r.length,
       bots: everyone.filter((p) => p.isBot).length,
       botLevel: r.botLevel,
+      rival: this.rivalResult(resolved.length ? round2(gpa) : 0),
     };
     r.folders.clear();
     this.phase = 'results';
     this.roundsPlayed++;
     this.emit('all', { k: 'end' });
+  }
+
+  rivalResult(ourGpa) {
+    if (!this.rival) return null;
+    const theirs = scoreOf(this.rival.round.archive);
+    const theirGpa = theirs.gpa == null ? 0 : theirs.gpa;
+    const outcome = ourGpa > theirGpa ? 'win' : theirGpa > ourGpa ? 'lose' : 'tie';
+    return { name: RIVAL_NAME, level: this.round.rivalLevel, gpa: theirGpa, submitted: theirs.submitted, late: theirs.late, outcome };
   }
 
   computeAwards(players) {
@@ -663,7 +727,8 @@ export class Game {
       if (mine) {
         s.workingOn = mine.id;
         s.startedAt = now;
-        s.busyUntil = now + between(diff.botStep[0], diff.botStep[1]) * lvl.speed;
+        const step = lvl.baseStep || diff.botStep;
+        s.busyUntil = now + between(step[0], step[1]) * lvl.speed;
         this.touch();
         continue;
       }
@@ -696,6 +761,7 @@ export class Game {
       this.emit('all', { k: 'start' });
     }
     if (this.phase === 'playing') this.tickRound(now);
+    if (this.rival && (this.phase === 'countdown' || this.phase === 'playing')) this.tickRival();
   }
 
   tickRound(now) {
@@ -750,7 +816,6 @@ export class Game {
       })),
     };
     if (r && (this.phase === 'countdown' || this.phase === 'playing')) {
-      const points = r.archive.reduce((s, a) => s + GRADE_POINTS[a.grade], 0);
       view.round = {
         startAt: r.startAt,
         endAt: r.endAt,
@@ -762,11 +827,8 @@ export class Game {
           ready: f.ready, holderId: f.holderId, dueAt: f.dueAt, total: f.total,
         })),
         events: r.events.map((e) => ({ id: e.id, kind: e.kind, at: e.at, until: e.until, targetId: e.targetId, targetName: e.targetName })),
-        score: {
-          gpa: r.archive.length ? round2(points / r.archive.length) : null,
-          submitted: r.archive.filter((a) => a.grade !== 'F').length,
-          late: r.archive.filter((a) => a.grade === 'F').length,
-        },
+        score: scoreOf(r.archive),
+        rival: this.rivalView(),
         me: me ? {
           desk: me.desk.slice(),
           tasks: Object.fromEntries(me.desk
