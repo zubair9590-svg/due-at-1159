@@ -179,6 +179,7 @@ export function openTask({ folder, task, onDone, onWrong }) {
 
   backdrop.hidden = false;
   sheet.hidden = false;
+  document.body.classList.add('sheet-open'); // moves notifications away from the answers
   const first = body.querySelector('button');
   if (first) first.focus({ preventScroll: true });
 }
@@ -189,7 +190,10 @@ export function closeTask(immediate = false) {
   const wasOpen = !!cur || !sheet.hidden;
   cur = null;
   if (!wasOpen) return;
-  if (document.getElementById('picker').hidden) backdrop.hidden = true;
+  if (document.getElementById('picker').hidden) {
+    backdrop.hidden = true;
+    document.body.classList.remove('sheet-open');
+  }
   if (immediate) {
     sheet.hidden = true;
     sheet.innerHTML = '';

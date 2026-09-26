@@ -639,9 +639,20 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
 .ev-wifi { --ev: linear-gradient(135deg, #ff9f43, #c25d00); }
 .ev-final { --ev: linear-gradient(135deg, #ff4d5e, #6d0716); }
 
-/* wifi down (the unlucky player) */
-#wifi { z-index: 55; padding: 0; }
-#wifi canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0.85; }
+/* Wi-Fi "died" chaos event: static covers only the desk area, so the clock,
+   team and scores stay visible and it reads as part of the game. */
+.game-body { position: relative; }
+.wifi-zone {
+  position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 12px;
+  border-radius: 18px; overflow: hidden; animation: fade-in 0.25s ease;
+}
+.wifi-zone canvas { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; opacity: 0.55; }
+.wifi-msg .w-tag {
+  display: inline-block; margin-bottom: 4px; padding: 4px 10px; border-radius: 99px;
+  background: #ffd24d; color: #2b1600; font-weight: 800; font-size: 0.78rem;
+}
+.wifi-msg .w-count { margin: 0 0 10px; font-weight: 700; }
+.wifi-msg .w-count b { font-family: var(--digital); font-size: 1.5rem; color: #ffd24d; }
 .wifi-msg {
   position: relative; text-align: center; padding: 22px 26px; border-radius: 22px; background: rgba(6, 9, 24, 0.85);
   border: 1px solid var(--line); box-shadow: var(--shadow); max-width: 320px;
@@ -676,6 +687,10 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
   background: rgba(16, 20, 46, 0.95); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
   animation: toast-in 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
+/* While a task or the pass picker is open, notifications move to the top so
+   they never cover the answers at the bottom of the screen. */
+body.sheet-open .toasts { bottom: auto; top: calc(72px + var(--safe-top)); }
+body.sheet-open .toast:not(:nth-last-child(-n + 2)) { display: none; }
 .toast.good { border-color: rgba(57, 217, 138, 0.6); }
 .toast.bad { border-color: rgba(255, 90, 95, 0.7); }
 .toast.warn { border-color: rgba(255, 210, 77, 0.6); }

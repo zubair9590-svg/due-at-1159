@@ -158,6 +158,17 @@
           <div class="board-drawer" id="board-drawer" hidden></div>
         </div>
         <aside class="board" id="board" aria-label="All assignments"></aside>
+        <div id="wifi" class="wifi-zone" hidden>
+          <canvas id="static" aria-hidden="true"></canvas>
+          <div class="wifi-msg" role="alert">
+            <span class="w-tag">🎲 Chaos event</span>
+            <span class="w-icon">📶</span>
+            <h3>Your Wi-Fi "died"!</h3>
+            <p>It's part of the game, not your real internet. Your team has to cover for you.</p>
+            <div class="w-count">Back in <b id="wifi-secs">5</b>s</div>
+            <div class="bar"><i id="wifi-bar"></i></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -173,15 +184,6 @@
   <div id="sheet" class="sheet" hidden></div>
   <div id="picker" class="sheet picker" hidden></div>
   <div id="banner" class="banner" hidden></div>
-  <div id="wifi" class="overlay" hidden>
-    <canvas id="static" aria-hidden="true"></canvas>
-    <div class="wifi-msg" role="alert">
-      <span class="w-icon">📶</span>
-      <h3>No internet!</h3>
-      <p>Your Wi-Fi dropped. Your team has to cover for you.</p>
-      <div class="bar"><i id="wifi-bar"></i></div>
-    </div>
-  </div>
   <div id="chat" class="overlay" hidden></div>
   <div id="help" class="overlay" hidden>
     <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
@@ -250,10 +252,10 @@
       <section class="help-panel" id="panel-chaos" data-panel="chaos" role="tabpanel" aria-labelledby="tab-chaos" hidden>
         <p class="help-lead">Every so often, something goes wrong. Just like a real group project.</p>
         <ul class="chaos-list">
-          <li><span class="cl-icon ev-wifi">📶</span><span><b>Wi-Fi is down</b> One player's screen fills with static for 7 seconds. Everyone else has to cover.</span></li>
+          <li><span class="cl-icon ev-wifi">📶</span><span><b>Wi-Fi "died"</b> A pretend outage, not your real internet: one player's desk fills with static for 5 seconds. Everyone else has to cover.</span></li>
           <li><span class="cl-icon ev-groupchat">💬</span><span><b>Group chat exploded</b> Tap away 3 notifications before you can work again.</span></li>
           <li><span class="cl-icon ev-swap">🔀</span><span><b>Roles swapped</b> Everyone gets a new job. Say yours out loud!</span></li>
-          <li><span class="cl-icon ev-deadline">📣</span><span><b>Deadline moved up</b> Every folder loses 10 seconds.</span></li>
+          <li><span class="cl-icon ev-deadline">📣</span><span><b>Deadline moved up</b> Every folder loses 8 seconds.</span></li>
           <li><span class="cl-icon ev-extension">🙏</span><span><b>Extension granted</b> Every folder gains 12 seconds.</span></li>
           <li><span class="cl-icon ev-printer">🖨️</span><span><b>Printer jam</b> Nobody can submit for 6 seconds.</span></li>
           <li><span class="cl-icon ev-final">⏰</span><span><b>Last 30 seconds</b> The room turns red. Submit everything you can!</span></li>

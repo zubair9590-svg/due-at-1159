@@ -13,7 +13,7 @@ const COUNTDOWN_MS = 4500;
 const AWAY_AFTER_MS = 6000; // mid-round, a dropped player's work moves to teammates after this
 const LOBBY_DROP_MS = 45000; // in the lobby, a dropped player disappears after this
 const HOST_HANDOFF_MS = 4000;
-const WIFI_MS = 7000;
+const WIFI_MS = 5000;
 const PRINTER_MS = 6000;
 const CHAT_BUBBLES = 3;
 const NO_SPAWN_TAIL_MS = 12000;
@@ -629,7 +629,7 @@ export class Game {
       extension: r.events.length ? 2 : 0.5,
       groupchat: 3,
       printer: 2,
-      wifi: 3,
+      wifi: 2,
       swap: roster.length >= 2 ? 3 : 0,
     };
     const kinds = Object.keys(weights).filter((k) => k !== r.lastEvent);
@@ -637,7 +637,7 @@ export class Game {
     r.lastEvent = kind;
     const ev = { id: this.nextId('e'), kind, at: now, until: now + 3500 };
     if (kind === 'deadline') {
-      for (const f of r.folders.values()) f.dueAt = Math.max(now + 4000, f.dueAt - 10000);
+      for (const f of r.folders.values()) f.dueAt = Math.max(now + 6000, f.dueAt - 8000);
     } else if (kind === 'extension') {
       for (const f of r.folders.values()) f.dueAt += 12000;
     } else if (kind === 'printer') {

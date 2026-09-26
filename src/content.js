@@ -30,22 +30,22 @@ export const ASSIGNMENT_TYPES = [
 export const DIFFICULTY = {
   freshman: {
     id: 'freshman', label: 'Freshman', blurb: 'Chill. Perfect for your first game.',
-    stepTime: 17000, baseTime: 12000, load: 0.6, eventGap: [40000, 55000],
+    stepTime: 24000, baseTime: 16000, load: 0.55, eventGap: [40000, 55000],
     researchOptions: 4, smartRouting: true, botStep: [3600, 5200],
   },
   sophomore: {
     id: 'sophomore', label: 'Sophomore', blurb: 'The normal amount of chaos.',
-    stepTime: 14000, baseTime: 10000, load: 0.8, eventGap: [30000, 42000],
+    stepTime: 20000, baseTime: 14000, load: 0.7, eventGap: [30000, 42000],
     researchOptions: 4, smartRouting: true, botStep: [3200, 4600],
   },
   junior: {
     id: 'junior', label: 'Junior', blurb: 'Tighter deadlines. Work lands on the wrong desk.',
-    stepTime: 12500, baseTime: 8000, load: 0.88, eventGap: [24000, 34000],
+    stepTime: 16000, baseTime: 11000, load: 0.82, eventGap: [24000, 34000],
     researchOptions: 4, smartRouting: false, botStep: [2900, 4200],
   },
   senior: {
     id: 'senior', label: 'Senior', blurb: 'Finals week. Good luck.',
-    stepTime: 10500, baseTime: 7000, load: 1.0, eventGap: [17000, 26000],
+    stepTime: 13000, baseTime: 9000, load: 0.95, eventGap: [17000, 26000],
     researchOptions: 5, smartRouting: false, botStep: [2600, 3800],
   },
 };
@@ -59,11 +59,11 @@ export const BOT_LEVELS = {
   medium: { id: 'medium', speed: 1, pause: [450, 1000], chat: [500, 900], mistake: 0 },
   hard: { id: 'hard', speed: 2.1, pause: [1100, 2000], chat: [1100, 1700], mistake: 0.15 },
   // Rivals work at the same base pace on every difficulty (tuned with test/rival-tune.mjs):
-  // at Sophomore a player with 3 bot teammates scores about 3.4; the rivals score
-  // about 2.3 (easy), 3.4 (medium) and 3.8 (hard).
-  'rival-easy': { id: 'rival-easy', speed: 2.0, pause: [1100, 2000], chat: [1200, 1800], mistake: 0.15, baseStep: [3200, 4600] },
-  'rival-medium': { id: 'rival-medium', speed: 1.6, pause: [800, 1500], chat: [800, 1200], mistake: 0.07, baseStep: [3200, 4600] },
-  'rival-hard': { id: 'rival-hard', speed: 1.3, pause: [550, 1100], chat: [500, 800], mistake: 0.03, baseStep: [3200, 4600] },
+  // at Sophomore a player with 3 bot teammates scores about 3.9 and four humans about 3.4;
+  // a group of 4 rivals scores about 2.7 (easy), 3.5 (medium) and 3.9 (hard).
+  'rival-easy': { id: 'rival-easy', speed: 2.5, pause: [1000, 1800], chat: [1200, 1800], mistake: 0.09, baseStep: [3200, 4600] },
+  'rival-medium': { id: 'rival-medium', speed: 2.0, pause: [1100, 2000], chat: [800, 1200], mistake: 0.15, baseStep: [3200, 4600] },
+  'rival-hard': { id: 'rival-hard', speed: 1.5, pause: [750, 1400], chat: [500, 800], mistake: 0.06, baseStep: [3200, 4600] },
 };
 
 // A rival bot group races your group on the same kind of work.
@@ -282,7 +282,7 @@ const MISSPELLINGS = {
 
 export const EVENT_TYPES = {
   wifi: { emoji: '📶', title: 'Wi-Fi is down!' },
-  deadline: { emoji: '📣', title: 'Deadline moved up!', text: 'The professor wants everything 10 seconds sooner.' },
+  deadline: { emoji: '📣', title: 'Deadline moved up!', text: 'The professor wants everything 8 seconds sooner.' },
   extension: { emoji: '🙏', title: 'Extension granted!', text: '+12 seconds on every assignment.' },
   swap: { emoji: '🔀', title: 'Roles swapped!', text: 'Everyone has a new job. Say yours out loud!' },
   groupchat: { emoji: '💬', title: 'The group chat exploded', text: 'Clear your notifications to get back to work.' },

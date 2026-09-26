@@ -31,8 +31,8 @@ const RIVALS = [
   { id: 'hard', label: '😈 Hard', name: 'Hard', blurb: 'Race The Overachievers at full power. Very hard to beat!' },
 ];
 const EVENTS = {
-  wifi: { emoji: '📶', title: 'Wi-Fi is down!', text: (fx, you) => (fx.targetId === you ? 'Your Wi-Fi dropped! Hang tight…' : `${fx.targetName}'s Wi-Fi dropped. Cover for them!`) },
-  deadline: { emoji: '📣', title: 'Deadline moved up!', text: () => 'The professor wants everything 10 seconds sooner.' },
+  wifi: { emoji: '📶', title: 'Chaos: Wi-Fi "died"!', text: (fx, you) => (fx.targetId === you ? 'A pretend outage: you\'re back in 5 seconds.' : `${fx.targetName}'s Wi-Fi "died" (just the game). Cover for them!`) },
+  deadline: { emoji: '📣', title: 'Deadline moved up!', text: () => 'The professor wants everything 8 seconds sooner.' },
   extension: { emoji: '🙏', title: 'Extension granted!', text: () => '+12 seconds on every assignment.' },
   swap: { emoji: '🔀', title: 'Roles swapped!', text: () => 'Everyone has a new job. Say yours out loud!' },
   groupchat: { emoji: '💬', title: 'The group chat exploded', text: () => 'Clear your notifications to get back to work.' },
@@ -1074,6 +1074,7 @@ function openPicker(fid) {
   el.append(list);
   $('#sheet-backdrop').hidden = false;
   el.hidden = false;
+  document.body.classList.add('sheet-open');
 }
 
 function closePicker() {
@@ -1082,7 +1083,10 @@ function closePicker() {
   if (el.hidden) return;
   el.hidden = true;
   el.innerHTML = '';
-  if (!currentTask()) $('#sheet-backdrop').hidden = true;
+  if (!currentTask()) {
+    $('#sheet-backdrop').hidden = true;
+    document.body.classList.remove('sheet-open');
+  }
 }
 
 // ---------- countdown, job cards, events
@@ -1184,7 +1188,7 @@ function showEvent(fx, view) {
     case 'deadline':
       sfx.alarm();
       shake(undefined, true);
-      floatOnFolders('−10s', '#ff4d5e');
+      floatOnFolders('−8s', '#ff4d5e');
       break;
     case 'extension':
       sfx.extension();
@@ -1357,6 +1361,8 @@ async function shareResults(res) {
 // ------------------------------------------------------------ frame loop
 function frame() {
   requestAnimationFrame(frame);
+  const sheetOpen = !$('#sheet').hidden || !$('#picker').hidden;
+  if (document.body.classList.contains('sheet-open') !== sheetOpen) document.body.classList.toggle('sheet-open', sheetOpen);
   const v = S.view;
   if (!v || !v.round || (v.phase !== 'playing' && v.phase !== 'countdown')) return;
   const r = v.round;
@@ -1428,6 +1434,8 @@ function frame() {
       toast('📶 Back online!', 'good');
     } else {
       $('#wifi-bar').style.width = `${clamp((now - S.wifiFrom) / Math.max(1, until - S.wifiFrom), 0, 1) * 100}%`;
+      const secs = String(Math.max(1, Math.ceil((until - now) / 1000)));
+      if ($('#wifi-secs').textContent !== secs) $('#wifi-secs').textContent = secs;
     }
   }
 
