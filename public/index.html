@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Due at 11:59 · The group project party game</title>
+  <meta name="description" content="A real-time party game for 1 to 8 players. Every phone is a different job on the same group project. Pass the work, beat the deadline. No login, no install.">
+  <meta name="theme-color" content="#0c1233">
+  <meta property="og:title" content="Due at 11:59: the group project party game">
+  <meta property="og:description" content="Every phone is a different job on the same group project. Join with a room code. No login, no install.">
+  <meta property="og:image" content="/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Caveat:wght@600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <div id="sky" aria-hidden="true"></div>
+
+  <div id="app">
+    <!-- ============================================================ HOME -->
+    <section id="screen-home" class="screen active" aria-label="Home">
+      <div class="home-wrap">
+        <div class="hero">
+          <div class="alarm" aria-hidden="true"><span class="alarm-digits">11<span class="colon">:</span>59</span><span class="alarm-pm">PM</span></div>
+          <h1 class="logo">Due at <span class="logo-time">11:59</span></h1>
+          <p class="tagline">The group project party game.</p>
+        </div>
+
+        <div class="card home-card">
+          <div class="join-banner" id="join-banner" hidden>📨 You're invited to room <b id="join-banner-code"></b></div>
+          <label class="field">Your name
+            <input id="name-input" class="input" maxlength="16" autocomplete="nickname" placeholder="e.g. Zubair" spellcheck="false">
+          </label>
+          <button id="create-btn" class="btn primary big" type="button">✨ Create a room</button>
+          <div class="or"><span>or join your group</span></div>
+          <div class="join-row">
+            <input id="code-input" class="code-input" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-label="Room code">
+            <button id="join-btn" class="btn secondary" type="button">Join</button>
+          </div>
+          <p id="home-error" class="form-error" role="alert"></p>
+        </div>
+
+        <div class="how">
+          <h2>How to play</h2>
+          <ol class="how-steps">
+            <li><span class="how-icon">🎲</span><span><b>Everyone gets a job.</b>
+              <span class="how-jobs"><span class="job-chip st-research">🔎 Research</span><span class="job-chip st-write">✍️ Write</span><span class="job-chip st-design">🎨 Design</span><span class="job-chip st-edit">✅ Edit</span></span></span></li>
+            <li><span class="how-icon">📨</span><span><b>Do your step, then pass the folder.</b>Work slides from phone to phone.</span></li>
+            <li><span class="how-icon">⏰</span><span><b>Submit before 11:59 PM.</b>The earlier you submit, the better the grade. Watch out for chaos!</span></li>
+          </ol>
+          <p class="how-tip">Talk to each other. A lot.</p>
+        </div>
+
+        <footer class="home-foot">No login · No install · 1–8 players<br>Best with friends in the same room or on a call. Bots fill empty seats.</footer>
+      </div>
+    </section>
+
+    <!-- ============================================================ LOBBY -->
+    <section id="screen-lobby" class="screen" aria-label="Lobby">
+      <div class="topbar">
+        <button class="icon-btn" id="lobby-leave" type="button" aria-label="Leave room">⟵</button>
+        <span class="topbar-title">Study room</span>
+        <button class="icon-btn" id="lobby-sound" type="button" aria-label="Sound">🔊</button>
+      </div>
+      <div class="lobby-wrap">
+        <div class="code-block">
+          <div class="code-label">Room code</div>
+          <div class="code-tiles" id="code-tiles"></div>
+          <div class="invite-row">
+            <button class="btn secondary" id="invite-btn" type="button">🔗 Invite friends</button>
+            <button class="btn ghost" id="qr-btn" type="button">▦ QR code</button>
+          </div>
+        </div>
+        <div class="qr-card" id="qr-card" hidden></div>
+        <div class="best-ribbon" id="best-ribbon" hidden></div>
+
+        <div class="card">
+          <h2 class="section-title">Your group <small id="player-count"></small></h2>
+          <div class="players" id="players"></div>
+        </div>
+
+        <div class="card host-panel" id="host-panel" hidden>
+          <div class="setting">
+            <span class="setting-label">Difficulty</span>
+            <div class="segmented" id="diff-seg" role="group" aria-label="Difficulty"></div>
+            <div class="setting-blurb" id="diff-blurb"></div>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Round length</span>
+            <div class="segmented" id="len-seg" role="group" aria-label="Round length"></div>
+          </div>
+          <div class="setting">
+            <span class="setting-label">Bots</span>
+            <div class="bots-row">
+              <button class="btn secondary" id="add-bot" type="button">🤖 Add a bot</button>
+              <button class="btn ghost" id="remove-bot" type="button">Remove a bot</button>
+            </div>
+          </div>
+          <div class="solo-tip" id="solo-tip" hidden>🎒 Playing alone? Quick play adds 3 bots who take the other jobs. Or open this page in a second tab to see the real-time sync.</div>
+          <div class="start-row">
+            <button class="btn secondary" id="quick-btn" type="button" hidden>⚡ Quick play with 3 bots</button>
+            <button class="btn primary big glow" id="start-btn" type="button">🔔 Start the semester</button>
+          </div>
+        </div>
+
+        <div class="card wait-panel" id="wait-panel" hidden>
+          <span class="big-emoji">⏳</span>
+          <span id="wait-text">Waiting for the host to start</span><span class="dots"></span>
+        </div>
+
+        <div class="card prefs">
+          <span class="setting-label">This device</span>
+          <div class="toggles">
+            <button class="toggle" id="pref-sound" type="button"></button>
+            <button class="toggle" id="pref-music" type="button"></button>
+            <button class="toggle" id="pref-haptics" type="button"></button>
+          </div>
+        </div>
+
+        <details class="card how-mini">
+          <summary>How to play</summary>
+          <ol>
+            <li>Everyone gets a job: 🔎 Research, ✍️ Write, 🎨 Design or ✅ Edit.</li>
+            <li>Folders land on your desk. If the next step is your job, tap it and solve a 3-second task.</li>
+            <li>If not, pass it to whoever has that job. Say it out loud!</li>
+            <li>When every step is done, submit it. Earlier = better grade.</li>
+            <li>Chaos happens: Wi-Fi drops, deadlines move, roles swap. Adapt.</li>
+            <li>At 11:59 PM you get a report card with a group GPA and awards.</li>
+          </ol>
+        </details>
+      </div>
+    </section>
+
+    <!-- ============================================================ GAME -->
+    <section id="screen-game" class="screen" aria-label="Game">
+      <header class="hud">
+        <div class="clock" id="clock" aria-label="Game clock"><span class="clock-time" id="clock-time">8:00</span><span class="clock-ampm">PM</span></div>
+        <div class="night-bar" aria-hidden="true"><div class="night-fill" id="night-fill"></div><span class="moon" id="moon">🌙</span></div>
+        <div class="gpa" aria-label="Group GPA"><span class="gpa-label">GPA</span><span class="gpa-value" id="gpa-value">–</span></div>
+        <button class="icon-btn" id="game-sound" type="button" aria-label="Sound">🔊</button>
+      </header>
+      <div class="team" id="team" aria-label="Your team"></div>
+      <div class="job" id="job"></div>
+      <div class="game-body">
+        <div class="desk-col">
+          <main class="desk" id="desk" aria-label="Your desk"></main>
+          <div class="board-toggle"><button class="btn ghost" id="board-toggle" type="button">📋 Everyone's assignments</button></div>
+          <div class="board-drawer" id="board-drawer" hidden></div>
+        </div>
+        <aside class="board" id="board" aria-label="All assignments"></aside>
+      </div>
+    </section>
+
+    <!-- ============================================================ RESULTS -->
+    <section id="screen-results" class="screen" aria-label="Report card">
+      <div class="results-wrap" id="results"></div>
+    </section>
+  </div>
+
+  <!-- ============================================================ OVERLAYS -->
+  <div id="countdown" class="overlay" hidden></div>
+  <div id="sheet-backdrop" class="backdrop" hidden></div>
+  <div id="sheet" class="sheet" hidden></div>
+  <div id="picker" class="sheet picker" hidden></div>
+  <div id="banner" class="banner" hidden></div>
+  <div id="wifi" class="overlay" hidden>
+    <canvas id="static" aria-hidden="true"></canvas>
+    <div class="wifi-msg" role="alert">
+      <span class="w-icon">📶</span>
+      <h3>No internet!</h3>
+      <p>Your Wi-Fi dropped. Your team has to cover for you.</p>
+      <div class="bar"><i id="wifi-bar"></i></div>
+    </div>
+  </div>
+  <div id="chat" class="overlay" hidden></div>
+  <div id="jobcard" class="overlay" hidden></div>
+  <div id="modal" class="overlay" hidden></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <div id="conn" class="conn" hidden role="status">Reconnecting…</div>
+</body>
+</html>

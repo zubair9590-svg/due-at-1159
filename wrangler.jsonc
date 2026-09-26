@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "due-at-1159",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  "observability": { "enabled": true },
+  "send_metrics": false
+}

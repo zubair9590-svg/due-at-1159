@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Due at 11:59 cover</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Caveat:wght@600;700&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --research: #4fc3f7; --write: #ffb74d; --design: #f48fb1; --edit: #81c784;
+    --paper: #fdf7e7; --paper-ink: #2a2733; --folder: #f6cf7a; --folder-2: #eab85a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1600px; height: 900px; overflow: hidden; }
+  body {
+    font-family: 'Bricolage Grotesque', system-ui, sans-serif; color: #f6f2e9; position: relative;
+    background:
+      radial-gradient(60% 70% at 8% 0%, rgba(255, 179, 71, 0.30), transparent 60%),
+      radial-gradient(60% 60% at 100% 100%, rgba(255, 60, 80, 0.28), transparent 60%),
+      radial-gradient(50% 50% at 75% 20%, rgba(116, 92, 255, 0.25), transparent 70%),
+      linear-gradient(180deg, #060918 0%, #0c1233 55%, #191f52 100%);
+  }
+  .stars { position: absolute; inset: 0; }
+  .star { position: absolute; border-radius: 50%; background: #fff; }
+
+  .left { position: absolute; left: 90px; top: 110px; width: 700px; }
+  .alarm {
+    display: inline-flex; align-items: flex-end; gap: 12px; padding: 18px 30px 14px; border-radius: 24px;
+    background: linear-gradient(180deg, #151a3a, #0b0f26); border: 3px solid #2a3170; transform: rotate(-3deg);
+    box-shadow: 0 0 0 8px rgba(255,255,255,0.03), 0 30px 60px rgba(0,0,0,0.55), inset 0 0 30px rgba(255,40,60,0.2);
+  }
+  .alarm b { font-family: 'Orbitron', monospace; font-weight: 800; font-size: 108px; line-height: 1; color: #ff4d5e;
+    text-shadow: 0 0 10px rgba(255,60,80,0.95), 0 0 40px rgba(255,60,80,0.6); }
+  .alarm span { font-family: 'Orbitron', monospace; color: #ff8a95; font-size: 26px; padding-bottom: 14px; }
+  h1 { margin: 34px 0 0; font-size: 122px; line-height: 0.95; font-weight: 800; letter-spacing: -0.03em; }
+  h1 em { font-style: normal; font-family: 'Caveat', cursive; font-weight: 700; color: #ffb347; font-size: 1.15em; display: inline-block; transform: rotate(-4deg); }
+  .tag { margin: 18px 0 0; font-size: 40px; color: #c3c7e6; font-weight: 600; }
+  .pills { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+  .pill { padding: 12px 20px; border-radius: 99px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); font-size: 24px; font-weight: 700; }
+  .jobs { display: flex; align-items: center; gap: 10px; margin-top: 40px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 99px; font-size: 24px; font-weight: 800; color: #151320; white-space: nowrap; flex: none; }
+  .arrow { font-size: 30px; color: #8a90bd; font-weight: 800; }
+
+  .phone {
+    position: absolute; width: 300px; height: 610px; border-radius: 46px; padding: 14px;
+    background: #0a0d20; border: 3px solid #2b3270;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), inset 0 0 0 2px rgba(255,255,255,0.05);
+  }
+  .screen { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; position: relative;
+    background: linear-gradient(180deg, #0c1233, #191f52); padding: 18px 14px; }
+  .notch { position: absolute; top: 10px; left: 50%; width: 90px; height: 22px; margin-left: -45px; border-radius: 99px; background: #05060f; }
+  .hud { margin-top: 26px; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 14px; background: rgba(8,11,30,0.8); border: 1px solid rgba(255,255,255,0.12); }
+  .hud b { font-family: 'Orbitron', monospace; font-size: 22px; color: #7cf5c5; text-shadow: 0 0 10px rgba(80,255,190,0.6); }
+  .hud i { font-style: normal; font-family: 'Orbitron', monospace; font-size: 16px; color: #39d98a; }
+  .job { margin-top: 12px; padding: 10px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; color: #c3c7e6; border: 1px solid; display: flex; align-items: center; gap: 8px; }
+  .job .chip { font-size: 15px; padding: 5px 10px; letter-spacing: 0; }
+  .folder {
+    position: relative; margin-top: 30px; border-radius: 6px 14px 14px 14px; padding: 14px; color: #2a2733;
+    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0) 30%), linear-gradient(180deg, var(--folder), var(--folder-2));
+    box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+  }
+  .folder::before { content: attr(data-kind); position: absolute; left: 0; top: -16px; height: 18px; padding: 2px 12px 0; border-radius: 8px 12px 0 0; background: var(--folder); font-size: 10px; font-weight: 800; letter-spacing: 0.12em; color: rgba(42,39,51,0.7); }
+  .folder h4 { margin: 0; font-size: 19px; }
+  .folder .topic { font-family: 'Caveat', cursive; font-weight: 700; font-size: 20px; color: #5b4a2c; }
+  .folder .btn { display: inline-block; margin-top: 10px; padding: 9px 14px; border-radius: 12px; font-weight: 800; font-size: 15px; color: #1a1720; }
+  .ring { position: absolute; right: 12px; top: 10px; width: 42px; height: 42px; border-radius: 50%; border: 5px solid #2fbf71; border-right-color: rgba(42,39,51,0.15); display: grid; place-items: center; font-family: 'Orbitron', monospace; font-weight: 800; font-size: 13px; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 14px 20px; border-radius: 24px 24px 0 0; background: linear-gradient(180deg, var(--paper), #f3ead2); color: #2a2733; border-top: 7px solid var(--write); }
+  .sheet .k { font-size: 10px; font-weight: 800; letter-spacing: 0.14em; color: #6d6778; }
+  .sheet h5 { margin: 4px 0 10px; font-size: 16px; }
+  .strip { display: flex; gap: 8px; align-items: center; margin-top: 7px; padding: 9px 10px; border-radius: 12px; background: #fff9e8; border-left: 5px solid var(--write); font-size: 12.5px; font-weight: 600; box-shadow: 0 4px 10px rgba(42,39,51,0.1); }
+  .strip b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--write); font-size: 12px; flex: none; }
+  .report { margin-top: 26px; border-radius: 16px; padding: 18px 14px; color: #2a2733; background: linear-gradient(180deg, var(--paper), #f3ead2); text-align: center; }
+  .report .s { font-size: 10px; font-weight: 800; letter-spacing: 0.18em; color: #6d6778; }
+  .report h5 { margin: 4px 0 12px; font-size: 19px; }
+  .stamp { width: 98px; height: 98px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; font-family: 'Caveat', cursive; font-weight: 700; font-size: 76px; line-height: 1; color: #39d98a; border: 6px solid #39d98a; transform: rotate(-12deg); }
+  .gpa { font-family: 'Orbitron', monospace; font-weight: 800; font-size: 34px; margin-top: 10px; }
+  .award { margin-top: 12px; padding: 10px; border-radius: 12px; background: #fff; font-weight: 800; font-size: 14px; border-top: 5px solid #ff7a6b; }
+  .award span { display: block; font-size: 12px; font-weight: 600; color: #6d6778; }
+
+  .p1 { left: 830px; top: 170px; transform: rotate(-9deg); }
+  .p2 { left: 1075px; top: 120px; transform: rotate(3deg); z-index: 2; }
+  .p3 { left: 1300px; top: 210px; transform: rotate(11deg); }
+  .flying { position: absolute; left: 1010px; top: 70px; z-index: 5; width: 150px; height: 104px; border-radius: 6px 14px 14px 14px; transform: rotate(-14deg);
+    background: linear-gradient(180deg, var(--folder), var(--folder-2)); box-shadow: 0 20px 40px rgba(0,0,0,0.5); display: grid; place-items: center; font-size: 54px; }
+  .flying::before { content: ''; position: absolute; left: 0; top: -12px; width: 60px; height: 14px; border-radius: 6px 10px 0 0; background: var(--folder); }
+  .trail { position: absolute; left: 880px; top: 60px; width: 420px; height: 160px; z-index: 4; }
+  .spark { position: absolute; z-index: 6; font-size: 40px; }
+  .confetti { position: absolute; width: 14px; height: 22px; border-radius: 3px; z-index: 6; }
+</style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+
+  <div class="left">
+    <div class="alarm"><b>11:59</b><span>PM</span></div>
+    <h1>Due at <em>11:59</em></h1>
+    <p class="tag">The group project party game.</p>
+    <div class="pills">
+      <span class="pill">📱 Every phone is a different job</span>
+      <span class="pill">⚡ Real-time, 1–8 players</span>
+      <span class="pill">🔑 Room code · no login · no install</span>
+    </div>
+    <div class="jobs">
+      <span class="chip" style="background: var(--research)">🔎 Research</span><span class="arrow">›</span>
+      <span class="chip" style="background: var(--write)">✍️ Write</span><span class="arrow">›</span>
+      <span class="chip" style="background: var(--design)">🎨 Design</span><span class="arrow">›</span>
+      <span class="chip" style="background: var(--edit)">✅ Edit</span>
+    </div>
+  </div>
+
+  <svg class="trail" viewBox="0 0 420 160" fill="none">
+    <path d="M10 150 C 90 20, 250 -10, 410 110" stroke="rgba(255,210,122,0.8)" stroke-width="5" stroke-dasharray="4 14" stroke-linecap="round"/>
+  </svg>
+  <div class="flying">📝</div>
+  <div class="spark" style="left: 1170px; top: 40px;">✨</div>
+
+  <!-- phone 1: research -->
+  <div class="phone p1"><div class="screen"><div class="notch"></div>
+    <div class="hud"><b>10:42</b><i>GPA 3.8</i></div>
+    <div class="job" style="border-color: rgba(79,195,247,0.6); background: rgba(79,195,247,0.18)">YOUR JOB <span class="chip" style="background: var(--research)">🔎 Research</span></div>
+    <div class="folder" data-kind="ENG 101"><h4>📝 Essay</h4><div class="topic">🏺 Ancient Egypt</div><span class="btn" style="background: var(--research)">🔎 Find sources</span><div class="ring">18</div></div>
+    <div class="folder" data-kind="BIO 110"><h4>🧪 Lab Poster</h4><div class="topic">🐝 Honeybees</div><span class="btn" style="background: #1f1c29; color: #fff">Send to Sam ›</span><div class="ring" style="border-color: #f5a623; border-right-color: rgba(42,39,51,0.15)">9</div></div>
+  </div></div>
+
+  <!-- phone 2: write task -->
+  <div class="phone p2"><div class="screen"><div class="notch"></div>
+    <div class="hud"><b>11:08</b><i>GPA 3.6</i></div>
+    <div class="job" style="border-color: rgba(255,183,77,0.6); background: rgba(255,183,77,0.18)">YOUR JOB <span class="chip" style="background: var(--write)">✍️ Write</span></div>
+    <div class="folder" data-kind="COMM 210"><h4>🎤 Presentation</h4><div class="topic">🚀 The Moon Landing</div></div>
+    <div class="sheet">
+      <div class="k">✍️ WRITE · PRESENTATION</div>
+      <h5>Tap the sentences in order</h5>
+      <div class="strip"><b>1</b>In July 1969, Apollo 11 launched.</div>
+      <div class="strip"><b>2</b>Four days later, it landed on the Moon.</div>
+      <div class="strip" style="opacity: .55"><b style="background: rgba(42,39,51,.1)">•</b>Then Armstrong took his first step.</div>
+    </div>
+  </div></div>
+
+  <!-- phone 3: report card -->
+  <div class="phone p3"><div class="screen"><div class="notch"></div>
+    <div class="report">
+      <div class="s">NIGHT OWL UNIVERSITY</div>
+      <h5>Semester Report Card</h5>
+      <div class="stamp">A</div>
+      <div class="gpa">3.82</div>
+      <div class="award">🏋️ Carried the Group<span>Zubair · 21 steps done</span></div>
+      <div class="award" style="border-top-color: #3fd3c6">⏰ Last-Minute Legend<span>Omair · 4 saves</span></div>
+    </div>
+  </div></div>
+
+  <div class="confetti" style="left: 1420px; top: 120px; background: #ffd24d; transform: rotate(20deg)"></div>
+  <div class="confetti" style="left: 1500px; top: 170px; background: #3fd3c6; transform: rotate(-30deg)"></div>
+  <div class="confetti" style="left: 1460px; top: 80px; background: #ff6fd8; transform: rotate(60deg)"></div>
+  <div class="confetti" style="left: 1540px; top: 110px; background: #9b8cff; transform: rotate(-10deg)"></div>
+  <div class="confetti" style="left: 1390px; top: 60px; background: #39d98a; transform: rotate(40deg)"></div>
+
+  <script>
+    // Deterministic starfield so every render looks the same.
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const stars = document.getElementById('stars');
+    for (let i = 0; i < 140; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = rand() < 0.85 ? 2 : 3.5;
+      Object.assign(s.style, { left: `${rand() * 1600}px`, top: `${rand() * 900}px`, width: `${size}px`, height: `${size}px`, opacity: (0.3 + rand() * 0.7).toFixed(2) });
+      stars.appendChild(s);
+    }
+  </script>
+</body>
+</html>
