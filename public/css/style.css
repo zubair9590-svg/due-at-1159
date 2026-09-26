@@ -226,10 +226,10 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
 .lobby-wrap { width: 100%; max-width: 720px; margin: 0 auto; display: grid; gap: 16px; }
 .code-block { text-align: center; }
 .code-label { color: var(--ink-faint); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
-.code-tiles { display: flex; justify-content: center; gap: 10px; margin: 10px 0 12px; }
+.code-tiles { display: flex; justify-content: center; gap: clamp(6px, 2.4vw, 10px); margin: 10px 0 12px; }
 .code-tile {
-  width: clamp(52px, 16vw, 68px); height: clamp(60px, 18vw, 78px); border-radius: 10px;
-  display: grid; place-items: center; font-family: var(--digital); font-weight: 800; font-size: clamp(1.8rem, 8vw, 2.4rem);
+  width: clamp(42px, 15vw, 68px); height: clamp(50px, 17vw, 78px); border-radius: 10px;
+  display: grid; place-items: center; font-family: var(--digital); font-weight: 800; font-size: clamp(1.5rem, 7.5vw, 2.4rem);
   color: var(--paper-ink); background: linear-gradient(180deg, #fff3b0, #ffe27a);
   box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35), inset 0 -4px 0 rgba(0, 0, 0, 0.08);
   transform: rotate(var(--r, 0deg)); animation: tile-in 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
@@ -767,6 +767,14 @@ body.final .lamp-glow { animation: flicker 1.2s steps(2) infinite; }
 .transcript li:nth-child(odd) { background: rgba(255, 255, 255, 0.5); }
 .transcript .t-by { font-size: 0.75rem; color: var(--paper-dim); font-weight: 600; }
 .results-actions { display: grid; gap: 10px; }
+
+/* Grid children may shrink below their content width on very narrow screens. */
+.home-wrap > *, .lobby-wrap > *, .results-wrap > *, .game-body > *, .host-panel > *, .setting > * { min-width: 0; }
+.invite-row .btn { flex: 1 1 auto; }
+.segmented button { min-width: 0; padding: 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 360px) {
+  #diff-seg { grid-auto-flow: row; grid-template-columns: 1fr 1fr; }
+}
 
 /* ------------------------------------------------------------ wide screens */
 @media (min-width: 980px) {
