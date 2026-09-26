@@ -37,3 +37,4 @@ const done = new Promise((resolve, reject) => {
 await done;
 ws.close();
 console.log('live smoke test passed:', [...seen].join(' → '));
+process.exit(0);
