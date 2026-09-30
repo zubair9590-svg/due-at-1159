@@ -276,3 +276,71 @@ test('rooms cap at 8 players and bots make room for humans in the lobby', () => 
   for (let i = 0; i < 7; i++) game.join({ name: `H${i}` });
   assert.equal(game.join({ name: 'Too many' }).error, 'full');
 });
+
+test('fair timers give awkward group sizes more time and never take time away', () => {
+  const diff = DIFFICULTY.sophomore;
+  const expected = { 1: 1, 2: 1.05, 3: 1.2, 4: 1, 5: 1.05, 6: 1, 7: 1, 8: 1 };
+  for (let size = 1; size <= 8; size++) {
+    const clock = makeClock();
+    const game = new Game('FAIR', clock.now);
+    const host = game.join({ name: 'Host' }).player.id;
+    for (let i = 1; i < size; i++) game.handle(host, { t: 'addBot' });
+    game.handle(host, { t: 'settings', rival: 'off' });
+    assert.equal(game.viewFor(host).fairTimers.scale, expected[size], `lobby shows the right boost for ${size}`);
+    game.handle(host, { t: 'start' });
+    let checked = 0;
+    for (let guard = 0; guard < 3000 && checked < 6 && game.phase !== 'results'; guard++) {
+      clock.t += 200;
+      game.tick();
+      game.drainFx();
+      for (const f of game.round.folders.values()) {
+        if (f.checked) continue;
+        f.checked = true;
+        checked++;
+        assert.equal(f.total, Math.round((diff.baseTime + diff.stepTime * f.steps.length) * expected[size]), `folder time for ${size} players`);
+      }
+    }
+    assert.ok(checked >= 3, `saw folders for ${size} players`);
+  }
+});
+
+test('practice rounds: one gentle minute, no chaos or rivals, and the grade does not count', () => {
+  const clock = makeClock();
+  const game = new Game('PRAC', clock.now);
+  const host = game.join({ name: 'Host' }).player.id;
+  const guest = game.join({ name: 'Guest' }).player.id;
+  game.handle(host, { t: 'addBot' });
+  game.handle(host, { t: 'addBot' });
+  game.handle(host, { t: 'settings', rival: 'hard' });
+  game.handle(guest, { t: 'practice' });
+  assert.equal(game.phase, 'lobby', 'only the host can start practice');
+  game.handle(host, { t: 'practice' });
+  assert.equal(game.phase, 'countdown');
+  assert.equal(game.round.practice, true);
+  assert.equal(game.round.length, 60000);
+  assert.equal(game.rival, null, 'no rival race in practice');
+  const view = game.viewFor(host);
+  assert.equal(view.round.practice, true);
+  assert.equal(view.round.rival, null);
+  const diff = DIFFICULTY[game.settings.difficulty];
+  runRound(game, clock, [host, guest], {
+    onStep: () => {
+      if (game.phase !== 'playing') return;
+      assert.equal(game.round.events.length, 0, 'no chaos events in practice');
+      for (const f of game.round.folders.values()) {
+        assert.equal(f.total, Math.round((diff.baseTime + diff.stepTime * f.steps.length) * 1.5), 'practice folders get 50% more time');
+      }
+    },
+  });
+  const res = game.results;
+  assert.equal(res.practice, true);
+  assert.equal(res.rival, null);
+  assert.equal(res.newBest, false);
+  assert.equal(game.best, null, 'practice never sets the best GPA');
+  assert.ok(res.submitted + res.late > 0, 'practice still hands out work');
+  game.handle(host, { t: 'lobby' });
+  game.handle(host, { t: 'start' });
+  assert.equal(game.round.practice, false, 'the next round is a real one');
+  assert.equal(game.round.length, game.settings.length * 1000);
+  assert.ok(game.rival, 'rivals are back for the real round');
+});

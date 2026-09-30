@@ -27,6 +27,8 @@ Then the chaos starts: a pretend Wi-Fi outage, an exploding group chat, the prof
 - **Real-time multiplayer:** join with a 4-letter room code, invite link or QR code; every screen stays in sync.
 - **Rival bots:** race "The Overachievers", a rival bot group, at Easy, Medium or Hard, with a live tug-of-war score bar.
 - **Four difficulty levels** (Freshman to Senior) and 2, 3 or 4½ minute rounds.
+- **60-second practice round:** slower timers, no chaos events or rivals, a tip on every task, and a grade that doesn't count.
+- **Fair timers:** groups of 3 get 20% more time per folder, and groups of 2 or 5 get 5% more. In 20,480 simulated rounds, groups of 3 had the hardest time; a 300-round A/B test showed the boost raises their average GPA by 0.18 to 0.39 while groups of 4 stay the same.
 - **Built for phones:** big tap targets, sound effects, study music and vibration.
 - **Resilient rooms:** players who drop out can rejoin, their folders are shared out meanwhile, and the host role hands off automatically.
 - **Built-in instructions** with tabs for the basics, jobs, chaos events and grading.

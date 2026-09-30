@@ -159,12 +159,13 @@ function avatarEl(p, size = '') {
   return a;
 }
 const gradePill = (g) => h('span', { class: `grade-pill g-${g}`, text: g });
+// Same cutoffs as the report card letter (A 3.7+, B 3.0+, C 2.0+, D 1.0+).
 function gpaColor(gpa) {
   if (gpa == null) return '';
-  if (gpa >= 3.5) return 'var(--gA)';
-  if (gpa >= 2.5) return 'var(--gB)';
-  if (gpa >= 1.5) return 'var(--gC)';
-  if (gpa >= 0.5) return 'var(--gD)';
+  if (gpa >= 3.7) return 'var(--gA)';
+  if (gpa >= 3.0) return 'var(--gB)';
+  if (gpa >= 2.0) return 'var(--gC)';
+  if (gpa >= 1.0) return 'var(--gD)';
   return 'var(--gF)';
 }
 function settingsSummary(settings) {
@@ -571,6 +572,10 @@ function renderLobby() {
     segmented($('#len-seg'), LENGTHS, v.settings.length, (l) => send({ t: 'settings', length: l.id }));
     const diff = DIFFS.find((d) => d.id === v.settings.difficulty);
     $('#diff-blurb').textContent = diff ? diff.blurb : '';
+    const fair = v.fairTimers;
+    const boost = fair ? Math.round((fair.scale - 1) * 100) : 0;
+    $('#fair-note').hidden = boost <= 0;
+    if (boost > 0) $('#fair-note').textContent = `⚖️ Fair timers: a group of ${fair.players} gets ${boost}% more time per folder.`;
     const rivalLevel = v.settings.rival || 'off';
     segmented($('#rival-seg'), RIVALS, rivalLevel, (r) => send({ t: 'settings', rival: r.id }));
     const rv = RIVALS.find((r) => r.id === rivalLevel);
@@ -704,6 +709,8 @@ function renderGame() {
     void gpaEl.offsetWidth;
     gpaEl.classList.add('pop');
   }
+  const strip = $('#practice-strip');
+  if (strip.hidden === !!r.practice) strip.hidden = !r.practice;
   renderVersus(r);
   renderTeam(v);
   if (mine) renderJob(mine);
@@ -1013,6 +1020,7 @@ function doTask(fid) {
   openTask({
     folder: f,
     task,
+    coach: !!r.practice,
     onDone: (ms) => { send({ t: 'done', folder: fid, task: task.id, ms: Math.round(ms) }); bumpHint('do'); },
     onWrong: () => send({ t: 'oops', folder: fid }),
   });
@@ -1114,9 +1122,10 @@ function startCountdown(view) {
   S.finalShown = false;
   const mine = view.players.find((p) => p.id === view.you);
   const stations = mine ? mine.stations : [];
+  const practice = !!(view.round && view.round.practice);
   el.append(h('div', { class: 'cd-wrap' },
-    h('p', { class: 'cd-line', text: "It's 8:00 PM." }),
-    h('p', { class: 'cd-line sub', text: 'The group project is due at 11:59. Talk to each other!' }),
+    h('p', { class: 'cd-line', text: practice ? '🧪 Practice round' : "It's 8:00 PM." }),
+    h('p', { class: 'cd-line sub', text: practice ? 'One minute, no grades. Do your step, then pass the folder to whoever has the next job.' : 'The group project is due at 11:59. Talk to each other!' }),
     view.round && view.round.rival ? h('p', { class: 'cd-line sub cd-rival', text: `⚔️ Beat ${view.round.rival.name} 🤓 to the best GPA!` }) : null,
     h('div', { class: 'cd-num', id: 'cd-num' }),
     h('div', { class: 'cd-job' }, jobCard(stations, stations.length > 1 ? 'YOUR JOBS' : 'YOUR JOB'))));
@@ -1271,13 +1280,14 @@ function buildReport(v, res) {
   const report = h('div', { class: 'report' },
     h('div', { class: 'report-head' },
       h('div', { class: 'school', text: 'Night Owl University' }),
-      h('h2', { text: 'Semester Report Card' }),
-      h('div', { class: 'report-meta', text: `${settingsSummary({ difficulty: res.difficulty, length: res.length / 1000, rival: res.rival ? res.rival.level : 'off' })} · Room ${v.code}` })),
+      h('h2', { text: res.practice ? 'Practice Round' : 'Semester Report Card' }),
+      h('div', { class: 'report-meta', text: res.practice ? `Practice · 1 min · Room ${v.code}` : `${settingsSummary({ difficulty: res.difficulty, length: res.length / 1000, rival: res.rival ? res.rival.level : 'off' })} · Room ${v.code}` })),
     h('div', { class: 'report-grade' },
       h('div', { class: 'big-stamp', style: { '--sc': GRADE_COLORS[res.letter] || '#888' }, text: res.letter }),
       h('div', { class: 'gpa-big' }, h('span', { class: 'n', id: 'gpa-count', text: '0.00' }), h('small', { text: 'GROUP GPA' }))),
     h('p', { class: 'headline', text: res.headline }),
     h('p', { class: 'quip', text: res.line }),
+    res.practice ? h('span', { class: 'practice-note', text: "🧪 Practice doesn't count toward your best GPA" }) : null,
     res.newBest && v.rounds > 1 ? h('span', { class: 'new-best', text: '🏆 New best this session!' }) : null,
     bars,
     stats,
@@ -1327,21 +1337,27 @@ function renderResultsActions(v, res) {
   const box = $('#results-actions');
   if (!box) return;
   const host = isHost();
-  const sig = `${host}|${v.hostId}`;
+  const sig = `${host}|${v.hostId}|${!!res.practice}`;
   if (box.dataset.sig === sig) return;
   box.dataset.sig = sig;
   box.innerHTML = '';
-  if (host) {
+  const again = (t) => () => { sfx.tap(); send({ t: 'lobby' }); if (t) send({ t }); };
+  if (host && res.practice) {
     box.append(
-      h('button', { class: 'btn primary big glow', type: 'button', onclick: () => { sfx.tap(); send({ t: 'lobby' }); send({ t: 'start' }); } }, '🔁 Play again'),
-      h('button', { class: 'btn secondary', type: 'button', onclick: () => { sfx.tap(); send({ t: 'lobby' }); } }, '⚙️ Change settings'));
+      h('button', { class: 'btn primary big glow', type: 'button', onclick: again('start') }, '🔔 Start the real semester'),
+      h('button', { class: 'btn secondary', type: 'button', onclick: again('practice') }, '🧪 Practice again'),
+      h('button', { class: 'btn ghost', type: 'button', onclick: again(null) }, '⚙️ Change settings'));
+  } else if (host) {
+    box.append(
+      h('button', { class: 'btn primary big glow', type: 'button', onclick: again('start') }, '🔁 Play again'),
+      h('button', { class: 'btn secondary', type: 'button', onclick: again(null) }, '⚙️ Change settings'));
   } else {
     const hostPlayer = S.players.get(v.hostId);
-    box.append(h('div', { class: 'card wait-panel' }, h('span', { class: 'big-emoji', text: '☕' }), `Waiting for ${hostPlayer ? hostPlayer.name : 'the host'} to start the next round`, h('span', { class: 'dots' })));
+    const next = res.practice ? 'start the real semester' : 'start the next round';
+    box.append(h('div', { class: 'card wait-panel' }, h('span', { class: 'big-emoji', text: '☕' }), `Waiting for ${hostPlayer ? hostPlayer.name : 'the host'} to ${next}`, h('span', { class: 'dots' })));
   }
-  box.append(
-    h('button', { class: 'btn ghost', type: 'button', onclick: () => shareResults(res) }, '📣 Share our grade'),
-    h('button', { class: 'btn ghost', type: 'button', onclick: confirmLeave }, '🚪 Leave room'));
+  if (!res.practice) box.append(h('button', { class: 'btn ghost', type: 'button', onclick: () => shareResults(res) }, '📣 Share our grade'));
+  box.append(h('button', { class: 'btn ghost', type: 'button', onclick: confirmLeave }, '🚪 Leave room'));
 }
 
 async function shareResults(res) {
@@ -1698,6 +1714,7 @@ function init() {
   $('#remove-bot').addEventListener('click', () => { sfx.tap(); send({ t: 'removeBot' }); });
   $('#start-btn').addEventListener('click', () => { unlockAudio(); send({ t: 'start' }); });
   $('#quick-btn').addEventListener('click', () => { unlockAudio(); send({ t: 'quickplay' }); });
+  $('#practice-btn').addEventListener('click', () => { unlockAudio(); send({ t: 'practice' }); });
   $('#pref-sound').addEventListener('click', toggleSound);
   $('#pref-music').addEventListener('click', () => {
     S.musicPref = shouldPlayMusic() ? 'off' : 'on';

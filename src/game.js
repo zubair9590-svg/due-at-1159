@@ -4,7 +4,7 @@
 import {
   STATION_IDS, ASSIGNMENT_TYPES, TOPICS, DIFFICULTY, LENGTHS, BOT_LEVELS, RIVAL_LEVELS, RIVAL_NAME, CHAT_LINES,
   BOT_NAMES, FUN_NAMES, AVATARS, COLORS, makeTask, gradeFor, reportFor, GRADE_POINTS,
-  AWARDS, FALLBACK_AWARD,
+  AWARDS, FALLBACK_AWARD, PRACTICE, fairTimerScale,
 } from './content.js';
 
 export const MAX_PLAYERS = 8;
@@ -230,6 +230,7 @@ export class Game {
         }
         break;
       case 'start': if (isHost && this.phase === 'lobby') this.startCountdown(); break;
+      case 'practice': if (isHost && this.phase === 'lobby') this.startCountdown({ practice: true }); break;
       case 'quickplay':
         if (isHost && this.phase === 'lobby') {
           while (this.players.size < 4) this.addBot();
@@ -256,9 +257,12 @@ export class Game {
   }
 
   // ------------------------------------------------------------ round lifecycle
-  startCountdown() {
+  // A practice round is one gentle minute: no chaos events, no rivals, and its
+  // grade doesn't count toward the session's best.
+  startCountdown({ practice = false } = {}) {
     const now = this.now();
     const diff = DIFFICULTY[this.settings.difficulty];
+    const length = (practice ? PRACTICE.length : this.settings.length) * 1000;
     for (const p of this.players.values()) {
       p.desk = [];
       p.stats = newStats();
@@ -271,15 +275,16 @@ export class Game {
     this.round = {
       difficulty: diff.id,
       botLevel: this.settings.botLevel,
-      length: this.settings.length * 1000,
+      practice,
+      length,
       startAt,
-      endAt: startAt + this.settings.length * 1000,
+      endAt: startAt + length,
       folders: new Map(),
       archive: [],
       events: [],
       nextSpawnAt: startAt + 600,
       burst: Math.min(3, Math.max(1, this.roster().length)), // quick extra spawns so nobody starts idle
-      nextEventAt: startAt + between(22000, 32000),
+      nextEventAt: practice ? Infinity : startAt + between(22000, 32000),
       printerUntil: 0,
       spawned: 0,
       lastTopics: [],
@@ -289,7 +294,8 @@ export class Game {
       rivalSig: '',
     };
     this.results = null;
-    this.startRival();
+    if (practice) this.rival = null;
+    else this.startRival();
     this.phase = 'countdown';
     this.emit('all', { k: 'countdown' });
   }
@@ -360,13 +366,14 @@ export class Game {
     const grades = { A: 0, B: 0, C: 0, D: 0, F: 0 };
     for (const a of resolved) grades[a.grade]++;
     const everyone = this.orderedPlayers();
-    const newBest = resolved.length > 0 && (!this.best || gpa > this.best.gpa);
+    const newBest = !r.practice && resolved.length > 0 && (!this.best || gpa > this.best.gpa);
     if (newBest) this.best = { gpa, at: now };
     this.results = {
+      practice: !!r.practice,
       gpa: round2(gpa),
       letter: report.letter,
-      headline: report.headline,
-      line: report.line,
+      headline: r.practice ? 'Practice round done ✏️' : report.headline,
+      line: r.practice ? "That one didn't count. Now you know the drill: start the real semester!" : report.line,
       submitted: resolved.length - grades.F,
       late: grades.F,
       unfinished: unfinished.length,
@@ -491,7 +498,7 @@ export class Game {
     const n = Math.max(1, this.roster().length);
     // Bigger groups finish more work, but every hand-off costs time, so the
     // workload grows a bit slower than the group does.
-    const perMinute = 3.4 * Math.pow(n, 0.72) * diff.load;
+    const perMinute = 3.4 * Math.pow(n, 0.72) * diff.load * (r.practice ? PRACTICE.load : 1);
     let ms = 60000 / perMinute;
     if ((now - r.startAt) / r.length < 0.1) ms *= 1.15;
     return clamp(ms * between(0.8, 1.2), 3000, 24000);
@@ -513,7 +520,9 @@ export class Game {
     const topic = pick(freshTopics.length ? freshTopics : TOPICS);
     r.lastTopics.push(topic.id);
     if (r.lastTopics.length > 8) r.lastTopics.shift();
-    const total = diff.baseTime + diff.stepTime * type.steps.length;
+    // Fair timers give awkward group sizes extra time; practice adds more on top.
+    const scale = fairTimerScale(this.roster().length) * (r.practice ? PRACTICE.timeScale : 1);
+    const total = Math.round((diff.baseTime + diff.stepTime * type.steps.length) * scale);
     const folder = {
       id: this.nextId('f'),
       kind: type.kind,
@@ -807,6 +816,7 @@ export class Game {
       you: id,
       hostId: this.hostId,
       settings: this.settings,
+      fairTimers: { players: this.roster().length, scale: fairTimerScale(this.roster().length) },
       best: this.best ? round2(this.best.gpa) : null,
       rounds: this.roundsPlayed,
       players: this.orderedPlayers().map((p) => ({
@@ -821,6 +831,7 @@ export class Game {
         endAt: r.endAt,
         length: r.length,
         difficulty: r.difficulty,
+        practice: !!r.practice,
         printerUntil: r.printerUntil,
         folders: [...r.folders.values()].map((f) => ({
           id: f.id, kind: f.kind, title: f.title, emoji: f.emoji, topic: f.topic, steps: f.steps, stepIndex: f.stepIndex,

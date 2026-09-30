@@ -51,6 +51,17 @@ export const DIFFICULTY = {
 };
 export const LENGTHS = [120, 180, 270];
 
+// Fair timers: extra time per folder by group size. In 20,480 simulated rounds
+// (../data-viz-mission/sweep.mjs) groups of 3 needed about 20% more time to do as
+// well as groups of 4, and groups of 2 and 5 about 5% more. Other sizes already do
+// as well or better, and we only ever add time, never take it away.
+export const FAIR_TIMERS = { 2: 1.05, 3: 1.2, 5: 1.05 };
+export const fairTimerScale = (players) => FAIR_TIMERS[players] || 1;
+
+// The practice round: one short, gentle minute with no chaos, no rivals and no
+// grade that counts. Timers get 50% longer and fewer folders arrive.
+export const PRACTICE = { length: 60, timeScale: 1.5, load: 0.6 };
+
 // How bots behave. speed multiplies how long a task takes; pause is the gap
 // between actions; mistake is the chance of passing a folder to the wrong person.
 // Teammate bots use "medium". The rival-* levels drive the rival group.

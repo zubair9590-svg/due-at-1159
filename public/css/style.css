@@ -905,3 +905,20 @@ body.sheet-open .toast:not(:nth-last-child(-n + 2)) { display: none; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .paper-float { display: none; }
 }
+
+/* ------------------------------------------------------------ practice round + fair timers */
+.fair-note {
+  margin-top: 6px; padding: 7px 11px; border-radius: 12px; font-size: 0.86rem; font-weight: 600;
+  color: #9ff0c8; background: rgba(57, 217, 138, 0.1); border: 1px solid rgba(57, 217, 138, 0.35);
+}
+.practice-btn { flex-direction: column; gap: 2px; }
+.practice-btn small { font-size: 0.74rem; font-weight: 600; color: var(--ink-faint); letter-spacing: 0; }
+.practice-strip {
+  text-align: center; font-weight: 700; font-size: 0.85rem; padding: 6px 12px; border-radius: 12px;
+  color: #e3ddff; background: rgba(155, 140, 255, 0.16); border: 1px solid rgba(155, 140, 255, 0.45);
+}
+.practice-note {
+  display: block; width: fit-content; margin: 0 auto 10px; padding: 4px 12px; border-radius: 99px;
+  background: #e3ddff; color: #3b2f8f; font-weight: 800; font-size: 0.85rem;
+}
+.tip.coach { color: #34507a; font-weight: 600; }

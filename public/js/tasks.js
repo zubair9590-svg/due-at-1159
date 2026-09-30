@@ -3,11 +3,12 @@ import { sfx, haptic, HAPTIC } from './audio.js';
 import { sparkle, shake } from './fx.js';
 import { CHART_SVG } from './charts.js';
 
+// coach: the tip shown when a practice round opens this kind of task.
 const HEAD = {
-  research: { kicker: '🔎 Research', css: 'var(--research)', hex: '#4fc3f7' },
-  write: { kicker: '✍️ Write', css: 'var(--write)', hex: '#ffb74d' },
-  design: { kicker: '🎨 Design', css: 'var(--design)', hex: '#f48fb1' },
-  edit: { kicker: '✅ Edit', css: 'var(--edit)', hex: '#81c784' },
+  research: { kicker: '🔎 Research', css: 'var(--research)', hex: '#4fc3f7', coach: 'Tip: tap the sources you can trust, like journals, textbooks and expert data. Skip blogs, memes and ads.' },
+  write: { kicker: '✍️ Write', css: 'var(--write)', hex: '#ffb74d', coach: 'Tip: tap the sentences in reading order. Start with the one that introduces the topic.' },
+  design: { kicker: '🎨 Design', css: 'var(--design)', hex: '#f48fb1', coach: 'Tip: change over time = line, compare = bar, parts = pie, where = map, in order = timeline, steps = flowchart, related = scatter, overlap = Venn.' },
+  edit: { kicker: '✅ Edit', css: 'var(--edit)', hex: '#81c784', coach: 'Tip: one word is misspelled. Find it and tap it.' },
 };
 const PRAISE = ['Nice!', 'Nailed it!', 'Perfect!', 'Big brain!', 'A+ work!', 'Clean!'];
 
@@ -22,7 +23,7 @@ const el = (tag, cls, text) => {
 
 export const currentTask = () => cur;
 
-export function openTask({ folder, task, onDone, onWrong }) {
+export function openTask({ folder, task, onDone, onWrong, coach = false }) {
   closeTask(true);
   const sheet = document.getElementById('sheet');
   const backdrop = document.getElementById('sheet-backdrop');
@@ -62,7 +63,12 @@ export function openTask({ folder, task, onDone, onWrong }) {
   const say = (text, good = false) => {
     tip.textContent = text;
     tip.classList.toggle('good', good);
+    tip.classList.remove('coach');
   };
+  if (coach) {
+    tip.textContent = head.coach;
+    tip.classList.add('coach');
+  }
   const locked = () => state.done || performance.now() < state.lockUntil;
   const wrong = (node, text) => {
     sfx.wrong();

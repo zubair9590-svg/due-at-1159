@@ -92,6 +92,7 @@
             <span class="setting-label">Difficulty</span>
             <div class="segmented" id="diff-seg" role="group" aria-label="Difficulty"></div>
             <div class="setting-blurb" id="diff-blurb"></div>
+            <div class="fair-note" id="fair-note" hidden></div>
           </div>
           <div class="setting">
             <span class="setting-label">Round length</span>
@@ -113,6 +114,7 @@
           <div class="start-row">
             <button class="btn secondary" id="quick-btn" type="button" hidden>⚡ Quick play with 3 bots</button>
             <button class="btn primary big glow" id="start-btn" type="button">🔔 Start the semester</button>
+            <button class="btn ghost practice-btn" id="practice-btn" type="button">🧪 60-second practice <small>no grades, tips on</small></button>
           </div>
         </div>
 
@@ -144,6 +146,7 @@
         <button class="icon-btn" id="game-sound" type="button" aria-label="Sound">🔊</button>
         <button class="icon-btn" id="game-leave" type="button" aria-label="Leave the game" title="Leave the game">🚪</button>
       </header>
+      <div class="practice-strip" id="practice-strip" hidden>🧪 Practice round · no grades count · tips are on</div>
       <div class="versus" id="versus" hidden aria-label="Race against the rival group">
         <span class="vs-side vs-you">🙋 You <b id="vs-you">–</b></span>
         <div class="vs-bar" aria-hidden="true"><i id="vs-fill"></i><span class="vs-mid">⚔️</span></div>
@@ -211,6 +214,7 @@
         </ol>
         <div class="help-tips">
           <b>Tips</b>
+          <span>🧪 New to the game? Start with the <b>60-second practice</b>: slower timers, no chaos, a tip on every task, and it doesn't count.</span>
           <span>🤖 Playing alone? Tap <b>Quick play</b> and bots take the other jobs.</span>
           <span>⚔️ Beat the rival bots: get a higher GPA than The Overachievers by 11:59.</span>
           <span>🔴 A red, shaking folder has 5 seconds left. Hurry!</span>
@@ -279,6 +283,8 @@
           <li><b>Junior</b> Tighter deadlines, and work lands on the wrong desk.</li>
           <li><b>Senior</b> Finals week. Good luck.</li>
         </ul>
+        <h3 class="help-sub">⚖️ Fair timers</h3>
+        <p>Some group sizes have it harder than others. We simulated thousands of games and groups of 3 struggled most, so they get <b>20% more time</b> on every folder. Groups of 2 and 5 get 5% more. Nobody ever gets less.</p>
         <h3 class="help-sub">⚔️ Rival bots</h3>
         <p>Race a rival bot group, <b>The Overachievers 🤓</b>, doing the same kind of work at the same time. The bar at the top shows who's ahead. Beat their GPA by 11:59 to win!</p>
         <ul class="diff-guide">
